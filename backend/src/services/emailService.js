@@ -1,8 +1,8 @@
-const nodemailer = require('nodemailer');
-const handlebars = require('handlebars');
-const fs = require('fs');
-const path = require('path');
-const logger = require('../utils/logger');
+const nodemailer = require("nodemailer");
+const handlebars = require("handlebars");
+const fs = require("fs");
+const path = require("path");
+const logger = require("../utils/logger");
 
 class EmailService {
   constructor() {
@@ -18,34 +18,34 @@ class EmailService {
     const config = {
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT) || 587,
-      secure: process.env.EMAIL_SECURE === 'true',
+      secure: process.env.EMAIL_SECURE === "true",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
+        pass: process.env.EMAIL_PASSWORD,
+      },
     };
 
     // For development, use ethereal email
-    if (process.env.NODE_ENV === 'development' && !process.env.EMAIL_HOST) {
-      return nodemailer.createTransporter({
-        host: 'smtp.ethereal.email',
+    if (process.env.NODE_ENV === "development" && !process.env.EMAIL_HOST) {
+      return nodemailer.createTransport({
+        host: "smtp.ethereal.email",
         port: 587,
         auth: {
-          user: 'ethereal.user@ethereal.email',
-          pass: 'ethereal.pass'
-        }
+          user: "ethereal.user@ethereal.email",
+          pass: "ethereal.pass",
+        },
       });
     }
 
-    return nodemailer.createTransporter(config);
+    return nodemailer.createTransport(config);
   }
 
   /**
    * Load email templates
    */
   loadTemplates() {
-    const templatesDir = path.join(__dirname, '../templates/email');
-    
+    const templatesDir = path.join(__dirname, "../templates/email");
+
     // Create templates directory if it doesn't exist
     if (!fs.existsSync(templatesDir)) {
       fs.mkdirSync(templatesDir, { recursive: true });
@@ -54,18 +54,21 @@ class EmailService {
 
     try {
       const templateFiles = fs.readdirSync(templatesDir);
-      
-      templateFiles.forEach(file => {
-        if (file.endsWith('.hbs')) {
-          const templateName = file.replace('.hbs', '');
-          const templateContent = fs.readFileSync(path.join(templatesDir, file), 'utf8');
+
+      templateFiles.forEach((file) => {
+        if (file.endsWith(".hbs")) {
+          const templateName = file.replace(".hbs", "");
+          const templateContent = fs.readFileSync(
+            path.join(templatesDir, file),
+            "utf8"
+          );
           this.templates.set(templateName, handlebars.compile(templateContent));
         }
       });
-      
+
       logger.info(`Loaded ${this.templates.size} email templates`);
     } catch (error) {
-      logger.error('Failed to load email templates:', error);
+      logger.error("Failed to load email templates:", error);
     }
   }
 
@@ -74,7 +77,7 @@ class EmailService {
    */
   createDefaultTemplates(templatesDir) {
     const templates = {
-      'verification': `
+      verification: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -98,8 +101,8 @@ class EmailService {
     </div>
 </body>
 </html>`,
-      
-      'password-reset': `
+
+      "password-reset": `
 <!DOCTYPE html>
 <html>
 <head>
@@ -124,7 +127,7 @@ class EmailService {
 </body>
 </html>`,
 
-      'order-confirmation': `
+      "order-confirmation": `
 <!DOCTYPE html>
 <html>
 <head>
@@ -141,14 +144,14 @@ class EmailService {
             <h3>Order Details</h3>
             <p><strong>Order Number:</strong> {{orderNumber}}</p>
             <p><strong>Rental Period:</strong> {{rentalStart}} to {{rentalEnd}}</p>
-            <p><strong>Total Amount:</strong> ${{totalAmount}}</p>
+            <p><strong>Total Amount:</strong> ${{ totalAmount }}</p>
         </div>
         
         <h3>Items:</h3>
         {{#each items}}
         <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
             <p><strong>{{name}}</strong></p>
-            <p>Quantity: {{quantity}} | Price: ${{price}}</p>
+            <p>Quantity: {{quantity}} | Price: ${{ price }}</p>
         </div>
         {{/each}}
         
@@ -161,7 +164,7 @@ class EmailService {
 </body>
 </html>`,
 
-      'rental-reminder': `
+      "rental-reminder": `
 <!DOCTYPE html>
 <html>
 <head>
@@ -188,7 +191,7 @@ class EmailService {
         <p style="font-size: 12px; color: #666;">{{appName}} Team</p>
     </div>
 </body>
-</html>`
+</html>`,
     };
 
     Object.entries(templates).forEach(([name, content]) => {
@@ -208,33 +211,33 @@ class EmailService {
 
       const html = template({
         ...data,
-        appName: process.env.APP_NAME || 'Rental Management System',
-        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000'
+        appName: process.env.APP_NAME || "Rental Management System",
+        frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
       });
 
       const mailOptions = {
         from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
         to,
         subject,
-        html
+        html,
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      
-      logger.info('Email sent successfully:', {
+
+      logger.info("Email sent successfully:", {
         to,
         subject,
         template: templateName,
-        messageId: result.messageId
+        messageId: result.messageId,
       });
 
       return result;
     } catch (error) {
-      logger.error('Failed to send email:', {
+      logger.error("Failed to send email:", {
         to,
         subject,
         template: templateName,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -245,16 +248,11 @@ class EmailService {
    */
   async sendVerificationEmail(email, firstName, token) {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
-    
-    return this.sendEmail(
-      email,
-      'Verify Your Email Address',
-      'verification',
-      {
-        firstName,
-        verificationUrl
-      }
-    );
+
+    return this.sendEmail(email, "Verify Your Email Address", "verification", {
+      firstName,
+      verificationUrl,
+    });
   }
 
   /**
@@ -262,16 +260,11 @@ class EmailService {
    */
   async sendPasswordResetEmail(email, firstName, token) {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
-    
-    return this.sendEmail(
-      email,
-      'Password Reset Request',
-      'password-reset',
-      {
-        firstName,
-        resetUrl
-      }
-    );
+
+    return this.sendEmail(email, "Password Reset Request", "password-reset", {
+      firstName,
+      resetUrl,
+    });
   }
 
   /**
@@ -281,7 +274,7 @@ class EmailService {
     return this.sendEmail(
       email,
       `Order Confirmation - ${orderData.orderNumber}`,
-      'order-confirmation',
+      "order-confirmation",
       orderData
     );
   }
@@ -293,7 +286,7 @@ class EmailService {
     return this.sendEmail(
       email,
       `Rental Return Reminder - ${reminderData.orderNumber}`,
-      'rental-reminder',
+      "rental-reminder",
       reminderData
     );
   }
@@ -304,10 +297,10 @@ class EmailService {
   async testConnection() {
     try {
       await this.transporter.verify();
-      logger.info('Email service connection verified');
+      logger.info("Email service connection verified");
       return true;
     } catch (error) {
-      logger.error('Email service connection failed:', error);
+      logger.error("Email service connection failed:", error);
       return false;
     }
   }
