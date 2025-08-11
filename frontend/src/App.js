@@ -31,6 +31,8 @@ import VendorRentalPage from "./pages/vendor/VendorRentalPage";
 import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
 import VendorProductDetailPage from "./pages/vendor/ProductDetailPage";
 import VendorProductsPage from "./pages/vendor/VendorProductsPage";
+import RentalOrderConfirmationPage from "./pages/vendor/RentalOrderConfirmationPage";
+import OrderConfirmationPage from "./pages/customer/OrderConfirmationPage";
 
 // Admin Pages (Legacy - to be converted to vendor)
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -189,6 +191,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["vendor"]}>
               <VendorProductDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/orders/:id/confirmed"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <RentalOrderConfirmationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders/:id/confirmed"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <OrderConfirmationPage />
             </ProtectedRoute>
           }
         />
