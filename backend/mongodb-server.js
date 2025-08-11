@@ -93,7 +93,7 @@ app.get("/health", (req, res) => {
 // Auth routes
 app.post("/api/auth/register", async (req, res) => {
   try {
-    const { email, password, firstName, lastName, phone, role } = req.body;
+    const { email, password, firstName, lastName, phone } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -104,10 +104,6 @@ app.post("/api/auth/register", async (req, res) => {
       });
     }
 
-    // Validate role if provided
-    const validRoles = ['customer', 'vendor'];
-    const userRole = role && validRoles.includes(role) ? role : 'customer';
-
     // Create new user
     const user = new User({
       email,
@@ -115,7 +111,7 @@ app.post("/api/auth/register", async (req, res) => {
       firstName,
       lastName,
       phone,
-      role: userRole,
+      role: "customer",
       isActive: true,
       emailVerified: true,
     });

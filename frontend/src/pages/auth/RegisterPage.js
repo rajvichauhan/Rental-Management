@@ -34,7 +34,6 @@ const RegisterPage = () => {
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,
-      role: data.role || 'customer',
     });
 
     if (result.success) {
@@ -182,7 +181,7 @@ const RegisterPage = () => {
                   <input
                     {...register("phone", {
                       pattern: {
-                        value: /^[+]?[1-9][\d]{0,15}$/,
+                        value: /^[\+]?[1-9][\d]{0,15}$/,
                         message: "Invalid phone number",
                       },
                     })}
@@ -199,21 +198,6 @@ const RegisterPage = () => {
                     {errors.phone.message}
                   </p>
                 )}
-              </div>
-
-              {/* Role Selection */}
-              <div>
-                <label htmlFor="role" className="label">
-                  Account Type
-                </label>
-                <select
-                  {...register("role")}
-                  className="input"
-                  defaultValue="customer"
-                >
-                  <option value="customer">Customer - Browse and rent products</option>
-                  <option value="vendor">Vendor - Manage products and orders</option>
-                </select>
               </div>
 
               {/* Password */}

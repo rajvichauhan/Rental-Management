@@ -10,7 +10,6 @@ import {
   FiShare2,
   FiChevronDown,
   FiChevronRight,
-  FiChevronLeft,
   FiCheck,
   FiCopy,
   FiMail,
@@ -47,7 +46,6 @@ const ProductDetailPage = () => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addToCartSuccess, setAddToCartSuccess] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Random product descriptions
   const getRandomDescription = () => {
@@ -98,18 +96,6 @@ const ProductDetailPage = () => {
       (rule) => rule.pricingType === "daily" && rule.isActive
     );
     return dailyPricing ? dailyPricing.basePrice : 0;
-  };
-
-  // Helper function to get product image URL
-  const getProductImageUrl = (product, index = 0) => {
-    if (product?.images && product.images.length > 0) {
-      const imageIndex = Math.min(index, product.images.length - 1);
-      const imageName = product.images[imageIndex];
-      // Convert .jpg to .svg for our placeholder images
-      const svgImageName = imageName.replace(".jpg", ".svg");
-      return `/images/products/${svgImageName}`;
-    }
-    return null;
   };
 
   // Helper function to get available inventory count
@@ -346,28 +332,10 @@ const ProductDetailPage = () => {
             {/* Left Column - Product Image and Details */}
             <div className="space-y-6">
               {/* Product Image */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-8">
-                <div className="w-64 h-64 bg-gray-700 rounded-lg border-2 border-gray-600 flex items-center justify-center relative overflow-hidden mx-auto">
-                  {getProductImageUrl(product, currentImageIndex) ? (
-                    <img
-                      src={getProductImageUrl(product, currentImageIndex)}
-                      alt={`${product.name} - Image ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover rounded-lg"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "block";
-                      }}
-                    />
-                  ) : null}
-                  {/* Fallback placeholder */}
-                  <div
-                    className="text-center"
-                    style={{
-                      display: getProductImageUrl(product, currentImageIndex)
-                        ? "none"
-                        : "block",
-                    }}
-                  >
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 flex items-center justify-center">
+                <div className="w-64 h-64 bg-gray-700 rounded-lg border-2 border-gray-600 flex items-center justify-center relative">
+                  {/* Placeholder image with product icon */}
+                  <div className="text-center">
                     <div className="w-20 h-24 bg-gray-600 rounded border border-gray-500 mx-auto mb-2 flex items-center justify-center relative">
                       {/* Bookmark/ribbon icon in corner */}
                       <div className="absolute -top-1 -right-1 w-6 h-8 bg-gray-500 rounded-sm flex items-center justify-center">
@@ -377,56 +345,7 @@ const ProductDetailPage = () => {
                     </div>
                     <div className="text-xs text-gray-400">Product Image</div>
                   </div>
-
-                  {/* Image Navigation */}
-                  {product?.images && product.images.length > 1 && (
-                    <>
-                      <button
-                        onClick={() =>
-                          setCurrentImageIndex((prev) =>
-                            prev > 0 ? prev - 1 : product.images.length - 1
-                          )
-                        }
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
-                      >
-                        <FiChevronLeft size={20} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setCurrentImageIndex((prev) =>
-                            prev < product.images.length - 1 ? prev + 1 : 0
-                          )
-                        }
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
-                      >
-                        <FiChevronRight size={20} />
-                      </button>
-                    </>
-                  )}
                 </div>
-
-                {/* Image Thumbnails */}
-                {product?.images && product.images.length > 1 && (
-                  <div className="flex justify-center gap-2 mt-4">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-12 h-12 rounded border-2 overflow-hidden transition-all ${
-                          currentImageIndex === index
-                            ? "border-blue-500"
-                            : "border-gray-600 hover:border-gray-500"
-                        }`}
-                      >
-                        <img
-                          src={getProductImageUrl(product, index)}
-                          alt={`${product.name} thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Add to Wishlist Button */}

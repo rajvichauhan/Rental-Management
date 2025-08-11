@@ -147,11 +147,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       toast.success("Login successful!");
-      return {
-        success: true,
-        user: response.data.data.user,
-        role: response.data.data.user.role
-      };
+      return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
       dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: message });
@@ -291,9 +287,9 @@ export const AuthProvider = ({ children }) => {
     return roles.includes(state.user.role);
   };
 
-  // Check if user is vendor
-  const isVendor = () => {
-    return hasRole(["vendor"]);
+  // Check if user is admin or staff
+  const isAdminOrStaff = () => {
+    return hasRole(["admin", "staff"]);
   };
 
   const value = {
@@ -308,7 +304,7 @@ export const AuthProvider = ({ children }) => {
     verifyEmail,
     clearError,
     hasRole,
-    isVendor,
+    isAdminOrStaff,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

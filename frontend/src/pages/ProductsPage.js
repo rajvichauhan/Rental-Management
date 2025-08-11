@@ -118,17 +118,6 @@ const ProductsPage = () => {
     return dailyPricing ? dailyPricing.basePrice : 0;
   };
 
-  // Helper function to get product image URL
-  const getProductImageUrl = (product) => {
-    if (product.images && product.images.length > 0) {
-      const imageName = product.images[0];
-      // Convert .jpg to .svg for our placeholder images
-      const svgImageName = imageName.replace(".jpg", ".svg");
-      return `/images/products/${svgImageName}`;
-    }
-    return null;
-  };
-
   // Handle sort change
   const handleSortChange = (value) => {
     switch (value) {
@@ -387,26 +376,8 @@ const ProductsPage = () => {
                           className="block cursor-pointer"
                         >
                           {/* Product Image */}
-                          <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors overflow-hidden">
-                            {getProductImageUrl(product) ? (
-                              <img
-                                src={getProductImageUrl(product)}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.target.style.display = "none";
-                                  e.target.nextSibling.style.display = "flex";
-                                }}
-                              />
-                            ) : null}
-                            <div
-                              className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center"
-                              style={{
-                                display: getProductImageUrl(product)
-                                  ? "none"
-                                  : "flex",
-                              }}
-                            >
+                          <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors">
+                            <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
                               <div className="text-xs text-gray-400 text-center">
                                 <div className="mb-1">📊</div>
                                 <div>IMG</div>
@@ -472,26 +443,8 @@ const ProductsPage = () => {
                             className="flex items-center gap-4 flex-1 cursor-pointer"
                           >
                             {/* Product Image */}
-                            <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors overflow-hidden">
-                              {getProductImageUrl(product) ? (
-                                <img
-                                  src={getProductImageUrl(product)}
-                                  alt={product.name}
-                                  className="w-full h-full object-cover rounded-lg"
-                                  onError={(e) => {
-                                    e.target.style.display = "none";
-                                    e.target.nextSibling.style.display = "flex";
-                                  }}
-                                />
-                              ) : null}
-                              <div
-                                className="text-xs text-gray-400 text-center"
-                                style={{
-                                  display: getProductImageUrl(product)
-                                    ? "none"
-                                    : "flex",
-                                }}
-                              >
+                            <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors">
+                              <div className="text-xs text-gray-400 text-center">
                                 <div className="mb-1">📊</div>
                                 <div>IMG</div>
                               </div>

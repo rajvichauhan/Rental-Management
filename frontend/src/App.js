@@ -25,12 +25,7 @@ import ProfilePage from "./pages/customer/ProfilePage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 
-// Vendor Pages
-import VendorDashboardPage from "./pages/VendorDashboardPage";
-import VendorRentalPage from "./pages/vendor/VendorRentalPage";
-import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
-
-// Admin Pages (Legacy - to be converted to vendor)
+// Admin Pages
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
@@ -40,9 +35,7 @@ import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute";
-import AuthGuard from "./components/AuthGuard";
 import LoadingSpinner from "./components/UI/LoadingSpinner";
-import AuthDebug from "./components/AuthDebug";
 
 function App() {
   const { user, loading } = useAuth();
@@ -55,74 +48,35 @@ function App() {
     );
   }
 
-  // Helper function to get redirect path based on user role
-  const getRedirectPath = (userRole) => {
-    switch (userRole) {
-      case 'vendor':
-        return '/vendor-dashboard';
-      case 'customer':
-        return '/dashboard';
-      default:
-        return '/login';
-    }
-  };
-
   return (
     <div className="App">
       <Routes>
-        {/* Default route - redirect based on authentication */}
-        <Route
-          path="/"
-          element={
-            user ? (
-              <Navigate to={getRedirectPath(user.role)} replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-
         {/* Public Routes */}
         <Route path="/" element={<Layout />}>
-          <Route path="home" element={<HomePage />} />
+          <Route index element={<HomePage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/:id" element={<ProductDetailPage />} />
           <Route path="wishlist" element={<WishlistPage />} />
           <Route path="cart" element={<CartPage />} />
 
-          {/* Auth routes with proper redirection */}
+          {/* Auth Routes - redirect if already logged in */}
           <Route
             path="login"
-            element={
-              <AuthGuard requireAuth={false}>
-                <LoginPage />
-              </AuthGuard>
-            }
+            element={user ? <Navigate to="/" replace /> : <LoginPage />}
           />
-
           <Route
             path="register"
-            element={
-              <AuthGuard requireAuth={false}>
-                <RegisterPage />
-              </AuthGuard>
-            }
+            element={user ? <Navigate to="/" replace /> : <RegisterPage />}
           />
           <Route
             path="forgot-password"
             element={
-              <AuthGuard requireAuth={false}>
-                <ForgotPasswordPage />
-              </AuthGuard>
+              user ? <Navigate to="/" replace /> : <ForgotPasswordPage />
             }
           />
           <Route
             path="reset-password/:token"
-            element={
-              <AuthGuard requireAuth={false}>
-                <ResetPasswordPage />
-              </AuthGuard>
-            }
+            element={user ? <Navigate to="/" replace /> : <ResetPasswordPage />}
           />
           <Route path="verify-email/:token" element={<VerifyEmailPage />} />
         </Route>
@@ -131,7 +85,7 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute allowedRoles={["customer"]}>
+            <ProtectedRoute>
               <Layout />
             </ProtectedRoute>
           }
@@ -143,44 +97,18 @@ function App() {
           <Route
             path="checkout"
             element={
-              <ProtectedRoute allowedRoles={["customer"]}>
+              <ProtectedRoute>
                 <CheckoutPage />
               </ProtectedRoute>
             }
           />
         </Route>
 
-        {/* Vendor Protected Routes */}
-        <Route
-          path="/vendor-dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["vendor"]}>
-              <VendorDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/vendor/rental"
-          element={
-            <ProtectedRoute allowedRoles={["vendor"]}>
-              <VendorRentalPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/vendor/orders"
-          element={
-            <ProtectedRoute allowedRoles={["vendor"]}>
-              <VendorOrdersPage />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Legacy Admin Routes - Now for Vendors */}
+        {/* Admin Protected Routes */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["vendor"]}>
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -196,9 +124,6 @@ function App() {
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-
-      {/* Auth Debug Component (development only) */}
-      <AuthDebug />
     </div>
   );
 }
