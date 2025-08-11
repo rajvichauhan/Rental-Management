@@ -8,6 +8,7 @@ import {
   FiChevronDown,
   FiShoppingCart,
   FiHeart,
+  FiImage,
 } from "react-icons/fi";
 import { productsAPI, categoriesAPI } from "../services/api";
 import { useWishlist } from "../contexts/WishlistContext";
@@ -30,6 +31,7 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({});
+  const [hoveredProduct, setHoveredProduct] = useState(null);
 
   // Fetch categories
   useEffect(() => {
@@ -118,6 +120,47 @@ const ProductsPage = () => {
     return dailyPricing ? dailyPricing.basePrice : 0;
   };
 
+  // Helper function to get product image
+  const getProductImage = (product, isHover = false) => {
+    // Check if product has images array
+    if (product.images && product.images.length > 0) {
+      if (isHover && product.images.length > 1) {
+        return product.images[1]; // Show second image on hover
+      }
+      return product.images[0];
+    }
+
+    // Fallback images based on product name or category
+    const productName = product.name?.toLowerCase() || "";
+    const categoryName = product.category?.name?.toLowerCase() || "";
+
+    // Map specific products to available images with hover variants
+    if (productName.includes("chair") || categoryName.includes("chair")) {
+      return isHover ? "/chair2.jpg" : "/chair1.jpg";
+    }
+
+    // Default fallback images for different categories with hover variants
+    const categoryImageMap = {
+      furniture: isHover ? "/chair1.jpg" : "/chair2.jpg",
+      electronics: isHover ? "/chair2.jpg" : "/chair1.jpg",
+      appliances: isHover ? "/chair1.jpg" : "/chair2.jpg",
+      tools: isHover ? "/chair2.jpg" : "/chair1.jpg",
+      sports: isHover ? "/chair1.jpg" : "/chair2.jpg",
+      automotive: isHover ? "/chair2.jpg" : "/chair1.jpg",
+    };
+
+    return (
+      categoryImageMap[categoryName] ||
+      (isHover ? "/chair2.jpg" : "/chair1.jpg")
+    );
+  };
+
+  // Helper function to handle image loading errors
+  const handleImageError = (e) => {
+    e.target.style.display = "none";
+    e.target.nextSibling.style.display = "flex";
+  };
+
   // Handle sort change
   const handleSortChange = (value) => {
     switch (value) {
@@ -173,7 +216,7 @@ const ProductsPage = () => {
       productId: product._id || product.id,
       name: product.name,
       price: getProductPrice(product),
-      image: product.images?.[0] || null,
+      image: getProductImage(product),
     });
   };
 
@@ -369,6 +412,10 @@ const ProductsPage = () => {
                       <div
                         key={product._id || product.id}
                         className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors group"
+                        onMouseEnter={() =>
+                          setHoveredProduct(product._id || product.id)
+                        }
+                        onMouseLeave={() => setHoveredProduct(null)}
                       >
                         {/* Clickable Product Area */}
                         <Link
@@ -376,11 +423,24 @@ const ProductsPage = () => {
                           className="block cursor-pointer"
                         >
                           {/* Product Image */}
-                          <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors">
-                            <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
-                              <div className="text-xs text-gray-400 text-center">
-                                <div className="mb-1">📊</div>
-                                <div>IMG</div>
+                          <div className="w-full h-48 bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors relative overflow-hidden">
+                            <img
+                              src={getProductImage(
+                                product,
+                                hoveredProduct === (product._id || product.id)
+                              )}
+                              alt={product.name}
+                              className="w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105"
+                              onError={handleImageError}
+                            />
+                            {/* Fallback placeholder */}
+                            <div
+                              className="absolute inset-0 bg-gray-700 flex items-center justify-center"
+                              style={{ display: "none" }}
+                            >
+                              <div className="text-center text-gray-400">
+                                <FiImage size={32} className="mx-auto mb-2" />
+                                <div className="text-xs">No Image</div>
                               </div>
                             </div>
                           </div>
@@ -435,6 +495,10 @@ const ProductsPage = () => {
                       <div
                         key={product._id || product.id}
                         className="bg-gray-800 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors group"
+                        onMouseEnter={() =>
+                          setHoveredProduct(product._id || product.id)
+                        }
+                        onMouseLeave={() => setHoveredProduct(null)}
                       >
                         <div className="flex items-center gap-4 p-4">
                           {/* Clickable Product Area */}
@@ -443,10 +507,25 @@ const ProductsPage = () => {
                             className="flex items-center gap-4 flex-1 cursor-pointer"
                           >
                             {/* Product Image */}
-                            <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors">
-                              <div className="text-xs text-gray-400 text-center">
-                                <div className="mb-1">📊</div>
-                                <div>IMG</div>
+                            <div className="w-24 h-24 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors relative overflow-hidden">
+                              <img
+                                src={getProductImage(
+                                  product,
+                                  hoveredProduct === (product._id || product.id)
+                                )}
+                                alt={product.name}
+                                className="w-full h-full object-cover object-center rounded-lg transition-all duration-300 group-hover:scale-105"
+                                onError={handleImageError}
+                              />
+                              {/* Fallback placeholder */}
+                              <div
+                                className="absolute inset-0 bg-gray-700 rounded-lg flex items-center justify-center"
+                                style={{ display: "none" }}
+                              >
+                                <div className="text-center text-gray-400">
+                                  <FiImage size={20} className="mx-auto mb-1" />
+                                  <div className="text-xs">No Image</div>
+                                </div>
                               </div>
                             </div>
 
@@ -475,30 +554,6 @@ const ProductsPage = () => {
                               </div>
                             </div>
                           </Link>
-                          {/* Product Info */}
-                          <div className="flex-1">
-                            <h3 className="text-white font-medium mb-1">
-                              {product.name}
-                            </h3>
-                            <p className="text-gray-400 text-sm mb-2 line-clamp-1">
-                              {product.description ||
-                                "No description available"}
-                            </p>
-                            <div className="flex items-center gap-4">
-                              <div>
-                                <p className="text-gray-300 text-lg font-semibold">
-                                  ₹{getProductPrice(product).toFixed(2)}/day
-                                </p>
-                                <p className="text-gray-500 text-xs">
-                                  Value: ₹
-                                  {(product.replacementValue || 0).toFixed(2)}
-                                </p>
-                              </div>
-                              <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
-                                SKU: {product.sku || "N/A"}
-                              </span>
-                            </div>
-                          </div>
 
                           {/* Action Buttons - Outside Link to prevent nested clickable elements */}
                           <div className="flex gap-2 flex-shrink-0">
