@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FiSearch,
   FiDownload,
@@ -16,6 +16,7 @@ import { exportToCSV, exportToPDF } from '../../utils/exportUtils';
 
 const VendorOrdersPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,8 +119,14 @@ const VendorOrdersPage = () => {
   };
 
   const viewOrderDetails = (order) => {
-    setSelectedOrder(order);
-    setShowOrderModal(true);
+    // If order is confirmed, navigate to confirmation page
+    if (order && order.workflowStage === 'rental-order') {
+      navigate(`/vendor/orders/${order.id}/confirmed`);
+    } else {
+      // Otherwise show the modal
+      setSelectedOrder(order);
+      setShowOrderModal(true);
+    }
   };
 
   const exportOrders = () => {

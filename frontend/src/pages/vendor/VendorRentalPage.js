@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -16,7 +16,7 @@ import RentalOrderSummary from "../../components/vendor/RentalOrderSummary";
 const VendorRentalPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("order-lines");
+  const [activeTab, setActiveTab] = useState('order-lines');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages] = useState(80);
   const [workflowStage, setWorkflowStage] = useState("quotation");
@@ -84,8 +84,8 @@ const VendorRentalPage = () => {
   };
 
   const handleConfirm = () => {
-    console.log("Confirming rental order");
-    setWorkflowStage("rental-order");
+    console.log('Confirming rental order');
+    setWorkflowStage('rental-order');
 
     // Redirect to confirmation page after confirming
     setTimeout(() => {
