@@ -160,11 +160,19 @@ const gracefulShutdown = (signal) => {
 // Start server
 const startServer = async () => {
   try {
+    console.log("Starting server...");
+
     // Connect to database
+    console.log("Connecting to database...");
     await connectDB();
+    console.log("Database connected successfully");
     logger.info("Database connected successfully");
 
+    console.log("Starting HTTP server...");
     const server = app.listen(PORT, () => {
+      console.log(
+        `Server running on port ${PORT} in ${process.env.NODE_ENV} mode`
+      );
       logger.info(
         `Server running on port ${PORT} in ${process.env.NODE_ENV} mode`
       );
@@ -176,6 +184,7 @@ const startServer = async () => {
 
     return server;
   } catch (error) {
+    console.error("Failed to start server:", error);
     logger.error("Failed to start server:", error);
     process.exit(1);
   }

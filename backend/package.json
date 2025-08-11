@@ -4,7 +4,7 @@
   "description": "Backend API for Rental Management System",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "nodemon src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest --watchAll=false",
     "test:watch": "jest --watchAll",

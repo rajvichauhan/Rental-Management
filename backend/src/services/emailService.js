@@ -306,4 +306,5 @@ class EmailService {
   }
 }
 
-module.exports = new EmailService();
+// Export the class instead of an instance to avoid initialization errors
+module.exports = EmailService;
