@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
   FiSearch,
@@ -9,9 +10,12 @@ import {
   FiHeart,
 } from "react-icons/fi";
 import { productsAPI, categoriesAPI } from "../services/api";
+import { useWishlist } from "../contexts/WishlistContext";
 import LoadingSpinner from "../components/UI/LoadingSpinner";
 
 const ProductsPage = () => {
+  const { addToWishlist, isInWishlist } = useWishlist();
+
   const [viewMode, setViewMode] = useState("grid");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
@@ -135,6 +139,19 @@ const ProductsPage = () => {
     setSortOrder("asc");
     setSearchTerm("");
     setCurrentPage(1);
+  };
+
+  // Handle add to wishlist
+  const handleAddToWishlist = (product, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    addToWishlist({
+      productId: product._id || product.id,
+      name: product.name,
+      price: getProductPrice(product),
+      image: product.images?.[0] || null
+    });
   };
 
   return (
@@ -327,37 +344,56 @@ const ProductsPage = () => {
                       // Grid View
                       <div
                         key={product._id || product.id}
-                        className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors"
+                        className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors group"
                       >
-                        {/* Product Image */}
-                        <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600">
-                          <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
-                            <div className="text-xs text-gray-400 text-center">
-                              <div className="mb-1">📊</div>
-                              <div>IMG</div>
+                        {/* Clickable Product Area */}
+                        <Link
+                          to={`/products/${product._id || product.id}`}
+                          className="block cursor-pointer"
+                        >
+                          {/* Product Image */}
+                          <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors">
+                            <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
+                              <div className="text-xs text-gray-400 text-center">
+                                <div className="mb-1">📊</div>
+                                <div>IMG</div>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Product Info */}
-                        <div className="p-4">
-                          <h3 className="text-white font-medium mb-2">
-                            {product.name}
-                          </h3>
-                          <p className="text-gray-400 text-sm mb-2 line-clamp-2">
-                            {product.description || "No description available"}
-                          </p>
-                          <p className="text-gray-300 text-lg font-semibold mb-3">
-                            ₹{getProductPrice(product).toFixed(2)}/day
-                          </p>
+                          {/* Product Info */}
+                          <div className="p-4 pb-2">
+                            <h3 className="text-white font-medium mb-2 group-hover:text-blue-400 transition-colors">
+                              {product.name}
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-2 line-clamp-2">
+                              {product.description || "No description available"}
+                            </p>
+                            <p className="text-gray-300 text-lg font-semibold mb-3">
+                              ₹{getProductPrice(product).toFixed(2)}/day
+                            </p>
+                          </div>
+                        </Link>
 
-                          {/* Action Buttons */}
+                        {/* Action Buttons - Outside Link to prevent nested clickable elements */}
+                        <div className="px-4 pb-4">
                           <div className="flex gap-2">
-                            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <Link
+                              to={`/products/${product._id || product.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                            >
                               <FiShoppingCart size={16} />
                               Add to Cart
-                            </button>
-                            <button className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition-colors">
+                            </Link>
+                            <button
+                              onClick={(e) => handleAddToWishlist(product, e)}
+                              className={`p-2 rounded transition-colors ${
+                                isInWishlist(product._id || product.id)
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+                              }`}
+                            >
                               <FiHeart size={16} />
                             </button>
                           </div>
@@ -367,17 +403,40 @@ const ProductsPage = () => {
                       // List View
                       <div
                         key={product._id || product.id}
-                        className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors"
+                        className="bg-gray-800 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors group"
                       >
-                        <div className="flex items-center gap-4">
-                          {/* Product Image */}
-                          <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <div className="text-xs text-gray-400 text-center">
-                              <div className="mb-1">📊</div>
-                              <div>IMG</div>
+                        <div className="flex items-center gap-4 p-4">
+                          {/* Clickable Product Area */}
+                          <Link
+                            to={`/products/${product._id || product.id}`}
+                            className="flex items-center gap-4 flex-1 cursor-pointer"
+                          >
+                            {/* Product Image */}
+                            <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors">
+                              <div className="text-xs text-gray-400 text-center">
+                                <div className="mb-1">📊</div>
+                                <div>IMG</div>
+                              </div>
                             </div>
-                          </div>
 
+                            {/* Product Info */}
+                            <div className="flex-1">
+                              <h3 className="text-white font-medium mb-1 group-hover:text-blue-400 transition-colors">
+                                {product.name}
+                              </h3>
+                              <p className="text-gray-400 text-sm mb-2 line-clamp-1">
+                                {product.description || "No description available"}
+                              </p>
+                              <div className="flex items-center gap-4">
+                                <p className="text-gray-300 text-lg font-semibold">
+                                  ₹{getProductPrice(product).toFixed(2)}/day
+                                </p>
+                                <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
+                                  SKU: {product.sku || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
                           {/* Product Info */}
                           <div className="flex-1">
                             <h3 className="text-white font-medium mb-1">
@@ -397,13 +456,24 @@ const ProductsPage = () => {
                             </div>
                           </div>
 
-                          {/* Action Buttons */}
+                          {/* Action Buttons - Outside Link to prevent nested clickable elements */}
                           <div className="flex gap-2 flex-shrink-0">
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2">
+                            <Link
+                              to={`/products/${product._id || product.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2"
+                            >
                               <FiShoppingCart size={16} />
                               Add to Cart
-                            </button>
-                            <button className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition-colors">
+                            </Link>
+                            <button
+                              onClick={(e) => handleAddToWishlist(product, e)}
+                              className={`p-2 rounded transition-colors ${
+                                isInWishlist(product._id || product.id)
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+                              }`}
+                            >
                               <FiHeart size={16} />
                             </button>
                           </div>
