@@ -16,6 +16,7 @@ const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
   const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -54,7 +55,7 @@ const ProductsPage = () => {
           page: currentPage,
           limit: 12,
           sortBy,
-          sortOrder: "asc",
+          sortOrder,
         };
 
         if (selectedCategory !== "all") {
@@ -77,7 +78,7 @@ const ProductsPage = () => {
     };
 
     fetchProducts();
-  }, [currentPage, selectedCategory, searchTerm, sortBy]);
+  }, [currentPage, selectedCategory, searchTerm, sortBy, sortOrder]);
 
   const colors = ["-", "-", "-", "-"];
   const priceRanges = ["-", "-", "-", "-"];
@@ -88,6 +89,52 @@ const ProductsPage = () => {
       (rule) => rule.pricingType === "daily" && rule.isActive
     );
     return dailyPricing ? dailyPricing.basePrice : 0;
+  };
+
+  // Handle sort change
+  const handleSortChange = (value) => {
+    switch (value) {
+      case "name":
+        setSortBy("name");
+        setSortOrder("asc");
+        break;
+      case "price-low":
+        setSortBy("replacementValue");
+        setSortOrder("asc");
+        break;
+      case "price-high":
+        setSortBy("replacementValue");
+        setSortOrder("desc");
+        break;
+      case "newest":
+        setSortBy("createdAt");
+        setSortOrder("desc");
+        break;
+      default:
+        setSortBy("name");
+        setSortOrder("asc");
+    }
+  };
+
+  // Get current sort value for dropdown
+  const getCurrentSortValue = () => {
+    if (sortBy === "name") return "name";
+    if (sortBy === "replacementValue" && sortOrder === "asc")
+      return "price-low";
+    if (sortBy === "replacementValue" && sortOrder === "desc")
+      return "price-high";
+    if (sortBy === "createdAt" && sortOrder === "desc") return "newest";
+    return "name";
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setSelectedCategory("all");
+    setPriceRange("all");
+    setSortBy("name");
+    setSortOrder("asc");
+    setSearchTerm("");
+    setCurrentPage(1);
   };
 
   return (
@@ -195,16 +242,16 @@ const ProductsPage = () => {
                 {/* Sort Dropdown */}
                 <div className="relative">
                   <select
-                    className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white appearance-none pr-8"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white appearance-none pr-8 focus:outline-none focus:border-blue-500"
+                    value={getCurrentSortValue()}
+                    onChange={(e) => handleSortChange(e.target.value)}
                   >
-                    <option value="name">Sort by</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="newest">Newest First</option>
+                    <option value="name"> Name A-Z</option>
+                    <option value="price-low"> Price: Low to High</option>
+                    <option value="price-high"> Price: High to Low</option>
+                    <option value="newest"> Newest First</option>
                   </select>
-                  <FiChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <FiChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
 
                 {/* View Mode Toggle */}
@@ -230,6 +277,19 @@ const ProductsPage = () => {
                     <FiList size={20} />
                   </button>
                 </div>
+
+                {/* Clear Filters Button */}
+                {(selectedCategory !== "all" ||
+                  searchTerm ||
+                  sortBy !== "name" ||
+                  sortOrder !== "asc") && (
+                  <button
+                    onClick={resetFilters}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
 
               {/* Products Grid */}
@@ -255,8 +315,14 @@ const ProductsPage = () => {
                   </p>
                 </div>
               ) : (
-                <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" : "space-y-4 mb-8"}>
-                  {products.map((product) => (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                      : "space-y-4 mb-8"
+                  }
+                >
+                  {products.map((product) =>
                     viewMode === "grid" ? (
                       // Grid View
                       <div
@@ -318,7 +384,8 @@ const ProductsPage = () => {
                               {product.name}
                             </h3>
                             <p className="text-gray-400 text-sm mb-2 line-clamp-1">
-                              {product.description || "No description available"}
+                              {product.description ||
+                                "No description available"}
                             </p>
                             <div className="flex items-center gap-4">
                               <p className="text-gray-300 text-lg font-semibold">
@@ -343,7 +410,7 @@ const ProductsPage = () => {
                         </div>
                       </div>
                     )
-                  ))}
+                  )}
                 </div>
               )}
 
