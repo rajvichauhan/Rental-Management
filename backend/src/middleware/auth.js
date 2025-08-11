@@ -122,8 +122,8 @@ const checkOwnership = (resourceUserIdField = "customer_id") => {
     const currentUserId = req.user._id.toString();
     const userRole = req.user.role;
 
-    // Admin and staff can access any resource
-    if (userRole === "admin" || userRole === "staff") {
+    // Vendors can access any resource
+    if (userRole === "vendor") {
       return next();
     }
 
