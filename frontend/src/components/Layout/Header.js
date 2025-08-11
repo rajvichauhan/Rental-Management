@@ -15,7 +15,7 @@ import {
 } from "react-icons/fi";
 
 const Header = () => {
-  const { user, logout, isAdminOrStaff } = useAuth();
+  const { user, logout, isVendor } = useAuth();
   const { cartItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,14 +119,14 @@ const Header = () => {
                         Dashboard
                       </Link>
 
-                      {isAdminOrStaff() && (
+                      {isVendor() && (
                         <Link
-                          to="/admin"
+                          to="/vendor-dashboard"
                           className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <FiSettings className="w-4 h-4 mr-2" />
-                          Admin Panel
+                          Vendor Dashboard
                         </Link>
                       )}
 
@@ -212,14 +212,14 @@ const Header = () => {
                       Dashboard
                     </Link>
 
-                    {isAdminOrStaff() && (
+                    {isVendor() && (
                       <Link
-                        to="/admin"
+                        to="/vendor-dashboard"
                         className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors flex items-center"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <FiSettings className="w-4 h-4 mr-2" />
-                        Admin Panel
+                        Vendor Dashboard
                       </Link>
                     )}
 
@@ -266,8 +266,10 @@ const Header = () => {
         )}
       </header>
 
-      {/* Dashboard Navigation - Only show on dashboard pages */}
-      {isDashboardPage && user && (
+
+
+      {/* Dashboard Navigation - Only show on dashboard pages for vendors */}
+      {isDashboardPage && user && isVendor() && (
         <div className="bg-gray-900 border-b border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">

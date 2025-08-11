@@ -25,7 +25,14 @@ import ProfilePage from "./pages/customer/ProfilePage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 
-// Admin Pages
+// Vendor Pages
+import VendorDashboardPage from "./pages/VendorDashboardPage";
+import VendorRentalPage from "./pages/vendor/VendorRentalPage";
+import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
+import VendorProductDetailPage from "./pages/vendor/ProductDetailPage";
+import VendorProductsPage from "./pages/vendor/VendorProductsPage";
+
+// Admin Pages (Legacy - to be converted to vendor)
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
@@ -35,6 +42,7 @@ import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute";
+import AuthGuard from "./components/AuthGuard";
 import LoadingSpinner from "./components/UI/LoadingSpinner";
 
 function App() {
@@ -48,9 +56,33 @@ function App() {
     );
   }
 
+  // Helper function to get redirect path based on user role
+  const getRedirectPath = (userRole) => {
+    switch (userRole) {
+      case 'vendor':
+        return '/vendor-dashboard';
+      case 'customer':
+        return '/dashboard';
+      default:
+        return '/login';
+    }
+  };
+
   return (
     <div className="App">
       <Routes>
+        {/* Default route - redirect based on authentication */}
+        <Route
+          path="/"
+          element={
+            user ? (
+              <Navigate to={getRedirectPath(user.role)} replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
         {/* Public Routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
@@ -59,24 +91,39 @@ function App() {
           <Route path="wishlist" element={<WishlistPage />} />
           <Route path="cart" element={<CartPage />} />
 
-          {/* Auth Routes - redirect if already logged in */}
+          {/* Auth routes with proper redirection */}
           <Route
             path="login"
-            element={user ? <Navigate to="/" replace /> : <LoginPage />}
+            element={
+              <AuthGuard requireAuth={false}>
+                <LoginPage />
+              </AuthGuard>
+            }
           />
+
           <Route
             path="register"
-            element={user ? <Navigate to="/" replace /> : <RegisterPage />}
+            element={
+              <AuthGuard requireAuth={false}>
+                <RegisterPage />
+              </AuthGuard>
+            }
           />
           <Route
             path="forgot-password"
             element={
-              user ? <Navigate to="/" replace /> : <ForgotPasswordPage />
+              <AuthGuard requireAuth={false}>
+                <ForgotPasswordPage />
+              </AuthGuard>
             }
           />
           <Route
             path="reset-password/:token"
-            element={user ? <Navigate to="/" replace /> : <ResetPasswordPage />}
+            element={
+              <AuthGuard requireAuth={false}>
+                <ResetPasswordPage />
+              </AuthGuard>
+            }
           />
           <Route path="verify-email/:token" element={<VerifyEmailPage />} />
         </Route>
@@ -104,11 +151,53 @@ function App() {
           />
         </Route>
 
-        {/* Admin Protected Routes */}
+        {/* Vendor Protected Routes */}
+        <Route
+          path="/vendor-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/rental"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorRentalPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/orders"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/products"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorProductsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/products/:id"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorProductDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Legacy Admin Routes - Now for Vendors */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+            <ProtectedRoute allowedRoles={["vendor"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
