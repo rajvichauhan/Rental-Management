@@ -9,7 +9,8 @@ import {
   FiCalendar,
   FiShare2,
   FiChevronDown,
-  FiChevronRight
+  FiChevronRight,
+  FiCheck
 } from 'react-icons/fi';
 import {
   FaFacebookF,
@@ -17,15 +18,16 @@ import {
   FaInstagram
 } from 'react-icons/fa';
 import { productsAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+
   const { addItem } = useCart();
   const { addToWishlist, isInWishlist } = useWishlist();
 
@@ -38,6 +40,8 @@ const ProductDetailPage = () => {
   const [endDate, setEndDate] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addToCartSuccess, setAddToCartSuccess] = useState(false);
 
   // Random product descriptions
   const getRandomDescription = () => {
@@ -90,34 +94,137 @@ const ProductDetailPage = () => {
     return dailyPricing ? dailyPricing.basePrice : 0;
   };
 
+  // Helper function to get available inventory count
+  const getAvailableInventoryCount = (product) => {
+    return product?.inventory?.filter(item => item.isAvailable)?.length || 0;
+  };
+
+  // Calculate rental duration in days
+  const calculateRentalDuration = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays || 1; // Minimum 1 day
+  };
+
+  // Calculate total cost
+  const calculateTotalCost = () => {
+    const duration = calculateRentalDuration(startDate, endDate);
+    const dailyPrice = getProductPrice(product);
+    return duration * dailyPrice * quantity;
+  };
+
+  // Validate rental dates
+  const validateRentalDates = () => {
+    if (!startDate || !endDate) {
+      return { isValid: false, message: 'Please select both start and end dates' };
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (start < today) {
+      return { isValid: false, message: 'Start date cannot be in the past' };
+    }
+
+    if (end <= start) {
+      return { isValid: false, message: 'End date must be after start date' };
+    }
+
+    const duration = calculateRentalDuration(startDate, endDate);
+    if (duration > 30) {
+      return { isValid: false, message: 'Maximum rental period is 30 days' };
+    }
+
+    return { isValid: true, message: '' };
+  };
+
   // Handle quantity change
   const handleQuantityChange = (change) => {
     const newQuantity = quantity + change;
-    if (newQuantity >= 1 && newQuantity <= (product?.inventory?.available || 10)) {
+    const maxQuantity = getAvailableInventoryCount(product) || 1;
+
+    if (newQuantity >= 1 && newQuantity <= maxQuantity) {
       setQuantity(newQuantity);
     }
   };
 
   // Handle add to cart
-  const handleAddToCart = () => {
-    if (!startDate || !endDate) {
-      alert('Please select rental dates');
+  const handleAddToCart = async () => {
+    // Validate rental dates
+    const validation = validateRentalDates();
+    if (!validation.isValid) {
+      toast.error(validation.message);
       return;
     }
 
-    addItem(
-      {
-        id: product._id || product.id,
-        name: product.name,
-        price: getProductPrice(product),
-        image: product.images?.[0] || null
-      },
-      quantity,
-      {
-        start: startDate,
-        end: endDate
-      }
-    );
+    // Check if product is available
+    if (!product || !product.isActive) {
+      toast.error('This product is currently unavailable');
+      return;
+    }
+
+    // Check if there's available inventory
+    const availableCount = getAvailableInventoryCount(product);
+    if (availableCount === 0) {
+      toast.error('This product is currently out of stock');
+      return;
+    }
+
+    // Check if requested quantity is available
+    if (quantity > availableCount) {
+      toast.error(`Only ${availableCount} unit${availableCount > 1 ? 's' : ''} available`);
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    try {
+      // Simulate API call delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const duration = calculateRentalDuration(startDate, endDate);
+      const totalCost = calculateTotalCost();
+
+      // Add item to cart
+      addItem(
+        {
+          id: product._id || product.id,
+          name: product.name,
+          price: getProductPrice(product),
+          image: product.images?.[0] || null
+        },
+        quantity,
+        {
+          start: startDate,
+          end: endDate
+        }
+      );
+
+      // Show success state
+      setAddToCartSuccess(true);
+
+      // Show success message with details
+      toast.success(
+        `${product.name} added to cart! ${duration} day${duration > 1 ? 's' : ''} rental for ₹${totalCost.toLocaleString()}`,
+        { duration: 4000 }
+      );
+
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        setAddToCartSuccess(false);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart. Please try again.');
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   // Handle add to wishlist
@@ -286,8 +393,48 @@ const ProductDetailPage = () => {
                 <h1 className="text-3xl font-bold text-white mb-4">{product.name}</h1>
                 <div className="flex items-baseline gap-3">
                   <span className="text-3xl font-bold text-white">₹ {getProductPrice(product)}</span>
-                  <span className="text-gray-400">( ₹{Math.round(getProductPrice(product) * 0.5)} / per unit )</span>
+                  <span className="text-gray-400">per day</span>
                 </div>
+
+                {/* Stock Availability */}
+                <div className="mt-2">
+                  {getAvailableInventoryCount(product) > 0 ? (
+                    <span className="text-green-400 text-sm">
+                      ✓ {getAvailableInventoryCount(product)} unit{getAvailableInventoryCount(product) > 1 ? 's' : ''} available
+                    </span>
+                  ) : (
+                    <span className="text-red-400 text-sm">
+                      ✗ Out of stock
+                    </span>
+                  )}
+                </div>
+
+                {/* Rental Summary */}
+                {startDate && endDate && (
+                  <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg">
+                    <h3 className="text-lg font-semibold text-white mb-2">Rental Summary</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Duration:</span>
+                        <span className="text-white">{calculateRentalDuration(startDate, endDate)} day{calculateRentalDuration(startDate, endDate) > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Daily Rate:</span>
+                        <span className="text-white">₹{getProductPrice(product).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Quantity:</span>
+                        <span className="text-white">{quantity}</span>
+                      </div>
+                      <div className="border-t border-gray-600 pt-2 mt-2">
+                        <div className="flex justify-between font-semibold">
+                          <span className="text-white">Total Cost:</span>
+                          <span className="text-green-400">₹{calculateTotalCost().toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Date Range Picker */}
@@ -338,7 +485,7 @@ const ProductDetailPage = () => {
                   </span>
                   <button
                     onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= (product?.inventory?.available || 10)}
+                    disabled={quantity >= getAvailableInventoryCount(product)}
                     className="p-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiPlus size={16} />
@@ -348,12 +495,58 @@ const ProductDetailPage = () => {
                 {/* Add to Cart Button */}
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  disabled={isAddingToCart || addToCartSuccess}
+                  className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+                    addToCartSuccess
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : isAddingToCart
+                      ? 'bg-blue-500 text-white cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
                 >
-                  <FiShoppingCart className="text-white" size={18} />
-                  Add to Cart
+                  {isAddingToCart ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      Adding...
+                    </>
+                  ) : addToCartSuccess ? (
+                    <>
+                      <FiCheck className="text-white" size={18} />
+                      Added to Cart!
+                    </>
+                  ) : (
+                    <>
+                      <FiShoppingCart className="text-white" size={18} />
+                      Add to Cart
+                    </>
+                  )}
                 </button>
               </div>
+
+              {/* Cart Navigation Options - Show after successful add */}
+              {addToCartSuccess && (
+                <div className="bg-green-900/20 border border-green-600/30 rounded-lg p-4 mt-4 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="text-green-400 text-sm">
+                      ✓ Item added to cart successfully!
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate('/cart')}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                      >
+                        View Cart
+                      </button>
+                      <button
+                        onClick={() => navigate('/checkout')}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                      >
+                        Checkout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Apply Coupon */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
