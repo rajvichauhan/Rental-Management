@@ -23,8 +23,7 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // Check if we're on the dashboard/home page to show the dashboard navbar
-  const isDashboardPage =
-    location.pathname === "/" || location.pathname.startsWith("/dashboard");
+  const isDashboardPage = location.pathname === '/' || location.pathname.startsWith('/dashboard');
 
   const handleLogout = async () => {
     await logout();
@@ -55,20 +54,20 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link
-                to="/products"
+              <Link 
+                to="/products" 
                 className="text-gray-300 hover:text-blue-400 transition-colors"
               >
                 Products
               </Link>
-              <Link
-                to="/about"
+              <Link 
+                to="/about" 
                 className="text-gray-300 hover:text-blue-400 transition-colors"
               >
                 About
               </Link>
-              <Link
-                to="/contact"
+              <Link 
+                to="/contact" 
                 className="text-gray-300 hover:text-blue-400 transition-colors"
               >
                 Contact
@@ -78,8 +77,8 @@ const Header = () => {
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
               {/* Cart */}
-              <Link
-                to="/cart"
+              <Link 
+                to="/cart" 
                 className="relative p-2 text-gray-300 hover:text-blue-400 transition-colors"
               >
                 <FiShoppingCart className="w-6 h-6" />
@@ -118,7 +117,7 @@ const Header = () => {
                         <FiUser className="w-4 h-4 mr-2" />
                         Dashboard
                       </Link>
-
+                      
                       {isAdminOrStaff() && (
                         <Link
                           to="/admin"
@@ -129,9 +128,9 @@ const Header = () => {
                           Admin Panel
                         </Link>
                       )}
-
+                      
                       <hr className="my-1 border-gray-700" />
-
+                      
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -164,11 +163,7 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="md:hidden p-2 text-gray-300 hover:text-blue-400 transition-colors"
               >
-                {isMenuOpen ? (
-                  <FiX className="w-6 h-6" />
-                ) : (
-                  <FiMenu className="w-6 h-6" />
-                )}
+                {isMenuOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
               </button>
             </div>
           </div>
@@ -177,30 +172,30 @@ const Header = () => {
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-700">
               <nav className="flex flex-col space-y-2">
-                <Link
-                  to="/products"
+                <Link 
+                  to="/products" 
                   className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Products
                 </Link>
-                <Link
-                  to="/about"
+                <Link 
+                  to="/about" 
                   className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   About
                 </Link>
-                <Link
-                  to="/contact"
+                <Link 
+                  to="/contact" 
                   className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Contact
                 </Link>
-
+                
                 <hr className="my-2 border-gray-700" />
-
+                
                 {user ? (
                   <>
                     <Link
@@ -211,7 +206,7 @@ const Header = () => {
                       <FiUser className="w-4 h-4 mr-2" />
                       Dashboard
                     </Link>
-
+                    
                     {isAdminOrStaff() && (
                       <Link
                         to="/admin"
@@ -222,7 +217,7 @@ const Header = () => {
                         Admin Panel
                       </Link>
                     )}
-
+                    
                     <button
                       onClick={() => {
                         handleLogout();
@@ -259,115 +254,27 @@ const Header = () => {
 
         {/* Click outside to close user menu */}
         {isUserMenuOpen && (
-          <div
-            className="fixed inset-0 z-40"
+          <div 
+            className="fixed inset-0 z-40" 
             onClick={() => setIsUserMenuOpen(false)}
           />
         )}
       </header>
 
-      {/* Customer Navigation - Show when logged in as customer */}
-      {user && !isAdminOrStaff() && location.pathname === "/products" && (
-        <div className="bg-gray-900 border-b border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-8">
-                <nav className="flex space-x-6">
-                  <Link
-                    to="/"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 flex items-center"
-                  >
-                    <FiPackage className="w-4 h-4 mr-2" />
-                    Home
-                  </Link>
-                  <Link
-                    to="/products"
-                    className="px-3 py-2 rounded-md bg-gray-700 text-white flex items-center"
-                  >
-                    Rental Shop
-                  </Link>
-                  <Link
-                    to="/wishlist"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Wishlist
-                  </Link>
-                  <Link
-                    to="/cart"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 flex items-center"
-                  >
-                    <FiShoppingCart className="w-4 h-4 mr-2" />
-                  </Link>
-                </nav>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {user.firstName?.[0]?.toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-sm text-white">{user.firstName}</span>
-                  <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center ml-2">
-                    <span className="text-white text-xs">📱</span>
-                  </div>
-                </div>
-                <Link
-                  to="/contact"
-                  className="px-3 py-2 rounded-md bg-gray-700 text-white text-sm hover:bg-gray-600"
-                >
-                  Contact us
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Dashboard Navigation - Only show on dashboard pages for admin/staff */}
-      {isDashboardPage && user && isAdminOrStaff() && (
+      {/* Dashboard Navigation - Only show on dashboard pages */}
+      {isDashboardPage && user && (
         <div className="bg-gray-900 border-b border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-8">
                 <h1 className="text-xl font-semibold text-white">Dashboard</h1>
                 <nav className="hidden md:flex space-x-6">
-                  <Link
-                    to="/"
-                    className="px-3 py-2 rounded-md bg-gray-700 text-white"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/products"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Rental
-                  </Link>
-                  <Link
-                    to="/orders"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Order
-                  </Link>
-                  <Link
-                    to="/products"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Products
-                  </Link>
-                  <Link
-                    to="/reports"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Reporting
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
-                  >
-                    Setting
-                  </Link>
+                  <Link to="/" className="px-3 py-2 rounded-md bg-gray-700 text-white">Dashboard</Link>
+                  <Link to="/products" className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700">Rental</Link>
+                  <Link to="/orders" className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700">Order</Link>
+                  <Link to="/products" className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700">Products</Link>
+                  <Link to="/reports" className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700">Reporting</Link>
+                  <Link to="/settings" className="px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700">Setting</Link>
                 </nav>
               </div>
               <div className="flex items-center space-x-4">

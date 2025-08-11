@@ -1,29 +1,29 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { authAPI } from '../services/api';
-import { toast } from 'react-hot-toast';
+import React, { createContext, useContext, useReducer, useEffect } from "react";
+import { authAPI } from "../services/api";
+import { toast } from "react-hot-toast";
 
 // Initial state
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: localStorage.getItem("token"),
   loading: true,
   error: null,
 };
 
 // Action types
 const AUTH_ACTIONS = {
-  LOGIN_START: 'LOGIN_START',
-  LOGIN_SUCCESS: 'LOGIN_SUCCESS',
-  LOGIN_FAILURE: 'LOGIN_FAILURE',
-  LOGOUT: 'LOGOUT',
-  REGISTER_START: 'REGISTER_START',
-  REGISTER_SUCCESS: 'REGISTER_SUCCESS',
-  REGISTER_FAILURE: 'REGISTER_FAILURE',
-  LOAD_USER_START: 'LOAD_USER_START',
-  LOAD_USER_SUCCESS: 'LOAD_USER_SUCCESS',
-  LOAD_USER_FAILURE: 'LOAD_USER_FAILURE',
-  UPDATE_USER: 'UPDATE_USER',
-  CLEAR_ERROR: 'CLEAR_ERROR',
+  LOGIN_START: "LOGIN_START",
+  LOGIN_SUCCESS: "LOGIN_SUCCESS",
+  LOGIN_FAILURE: "LOGIN_FAILURE",
+  LOGOUT: "LOGOUT",
+  REGISTER_START: "REGISTER_START",
+  REGISTER_SUCCESS: "REGISTER_SUCCESS",
+  REGISTER_FAILURE: "REGISTER_FAILURE",
+  LOAD_USER_START: "LOAD_USER_START",
+  LOAD_USER_SUCCESS: "LOAD_USER_SUCCESS",
+  LOAD_USER_FAILURE: "LOAD_USER_FAILURE",
+  UPDATE_USER: "UPDATE_USER",
+  CLEAR_ERROR: "CLEAR_ERROR",
 };
 
 // Reducer
@@ -40,7 +40,7 @@ const authReducer = (state, action) => {
 
     case AUTH_ACTIONS.LOGIN_SUCCESS:
     case AUTH_ACTIONS.REGISTER_SUCCESS:
-      localStorage.setItem('token', action.payload.token);
+      localStorage.setItem("token", action.payload.token);
       return {
         ...state,
         user: action.payload.user,
@@ -60,7 +60,7 @@ const authReducer = (state, action) => {
     case AUTH_ACTIONS.LOGIN_FAILURE:
     case AUTH_ACTIONS.REGISTER_FAILURE:
     case AUTH_ACTIONS.LOAD_USER_FAILURE:
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       return {
         ...state,
         user: null,
@@ -70,7 +70,7 @@ const authReducer = (state, action) => {
       };
 
     case AUTH_ACTIONS.LOGOUT:
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       return {
         ...state,
         user: null,
@@ -106,24 +106,27 @@ export const AuthProvider = ({ children }) => {
   // Load user on app start
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       if (!token) {
-        dispatch({ type: AUTH_ACTIONS.LOAD_USER_FAILURE, payload: 'No token found' });
+        dispatch({
+          type: AUTH_ACTIONS.LOAD_USER_FAILURE,
+          payload: "No token found",
+        });
         return;
       }
 
       try {
         dispatch({ type: AUTH_ACTIONS.LOAD_USER_START });
         const response = await authAPI.getMe();
-        dispatch({ 
-          type: AUTH_ACTIONS.LOAD_USER_SUCCESS, 
-          payload: { user: response.data.user } 
+        dispatch({
+          type: AUTH_ACTIONS.LOAD_USER_SUCCESS,
+          payload: { user: response.data.data.user }, // Access nested data.data.user
         });
       } catch (error) {
-        dispatch({ 
-          type: AUTH_ACTIONS.LOAD_USER_FAILURE, 
-          payload: error.response?.data?.message || 'Failed to load user' 
+        dispatch({
+          type: AUTH_ACTIONS.LOAD_USER_FAILURE,
+          payload: error.response?.data?.message || "Failed to load user",
         });
       }
     };
@@ -135,18 +138,18 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-      
+
       const response = await authAPI.login({ email, password });
-      
-      dispatch({ 
-        type: AUTH_ACTIONS.LOGIN_SUCCESS, 
-        payload: response.data 
+
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: response.data.data, // Access the nested data object
       });
-      
-      toast.success('Login successful!');
+
+      toast.success("Login successful!");
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
+      const message = error.response?.data?.message || "Login failed";
       dispatch({ type: AUTH_ACTIONS.LOGIN_FAILURE, payload: message });
       toast.error(message);
       return { success: false, error: message };
@@ -157,18 +160,20 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       dispatch({ type: AUTH_ACTIONS.REGISTER_START });
-      
+
       const response = await authAPI.register(userData);
-      
-      dispatch({ 
-        type: AUTH_ACTIONS.REGISTER_SUCCESS, 
-        payload: response.data 
+
+      dispatch({
+        type: AUTH_ACTIONS.REGISTER_SUCCESS,
+        payload: response.data.data, // Access the nested data object
       });
-      
-      toast.success('Registration successful! Please check your email to verify your account.');
+
+      toast.success(
+        "Registration successful! Please check your email to verify your account."
+      );
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.response?.data?.message || "Registration failed";
       dispatch({ type: AUTH_ACTIONS.REGISTER_FAILURE, payload: message });
       toast.error(message);
       return { success: false, error: message };
@@ -181,25 +186,25 @@ export const AuthProvider = ({ children }) => {
       await authAPI.logout();
     } catch (error) {
       // Continue with logout even if API call fails
-      console.error('Logout API call failed:', error);
+      console.error("Logout API call failed:", error);
     }
-    
+
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    toast.success('Logged out successfully');
+    toast.success("Logged out successfully");
   };
 
   // Update user function
   const updateUser = async (userData) => {
     try {
       const response = await authAPI.updateMe(userData);
-      dispatch({ 
-        type: AUTH_ACTIONS.UPDATE_USER, 
-        payload: response.data.user 
+      dispatch({
+        type: AUTH_ACTIONS.UPDATE_USER,
+        payload: response.data.user,
       });
-      toast.success('Profile updated successfully');
+      toast.success("Profile updated successfully");
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Update failed';
+      const message = error.response?.data?.message || "Update failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -209,10 +214,10 @@ export const AuthProvider = ({ children }) => {
   const changePassword = async (currentPassword, newPassword) => {
     try {
       await authAPI.changePassword({ currentPassword, newPassword });
-      toast.success('Password changed successfully');
+      toast.success("Password changed successfully");
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Password change failed';
+      const message = error.response?.data?.message || "Password change failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -222,10 +227,11 @@ export const AuthProvider = ({ children }) => {
   const forgotPassword = async (email) => {
     try {
       await authAPI.forgotPassword({ email });
-      toast.success('Password reset link sent to your email');
+      toast.success("Password reset link sent to your email");
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to send reset email';
+      const message =
+        error.response?.data?.message || "Failed to send reset email";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -235,14 +241,14 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (token, password) => {
     try {
       const response = await authAPI.resetPassword({ token, password });
-      dispatch({ 
-        type: AUTH_ACTIONS.LOGIN_SUCCESS, 
-        payload: response.data 
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: response.data,
       });
-      toast.success('Password reset successful');
+      toast.success("Password reset successful");
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Password reset failed';
+      const message = error.response?.data?.message || "Password reset failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -254,15 +260,16 @@ export const AuthProvider = ({ children }) => {
       await authAPI.verifyEmail(token);
       // Update user's email verification status
       if (state.user) {
-        dispatch({ 
-          type: AUTH_ACTIONS.UPDATE_USER, 
-          payload: { emailVerified: true } 
+        dispatch({
+          type: AUTH_ACTIONS.UPDATE_USER,
+          payload: { emailVerified: true },
         });
       }
-      toast.success('Email verified successfully');
+      toast.success("Email verified successfully");
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Email verification failed';
+      const message =
+        error.response?.data?.message || "Email verification failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -276,13 +283,13 @@ export const AuthProvider = ({ children }) => {
   // Check if user has specific role
   const hasRole = (roles) => {
     if (!state.user) return false;
-    if (typeof roles === 'string') roles = [roles];
+    if (typeof roles === "string") roles = [roles];
     return roles.includes(state.user.role);
   };
 
   // Check if user is admin or staff
   const isAdminOrStaff = () => {
-    return hasRole(['admin', 'staff']);
+    return hasRole(["admin", "staff"]);
   };
 
   const value = {
@@ -300,18 +307,14 @@ export const AuthProvider = ({ children }) => {
     isAdminOrStaff,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

@@ -10,6 +10,7 @@ import AdminLayout from "./components/Layout/AdminLayout";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import WishlistPage from "./pages/WishlistPage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -55,40 +56,27 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/:id" element={<ProductDetailPage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
           <Route path="cart" element={<CartPage />} />
 
           {/* Auth Routes - redirect if already logged in */}
           <Route
             path="login"
-            element={
-              user ? <Navigate to="/dashboard" replace /> : <LoginPage />
-            }
+            element={user ? <Navigate to="/" replace /> : <LoginPage />}
           />
           <Route
             path="register"
-            element={
-              user ? <Navigate to="/dashboard" replace /> : <RegisterPage />
-            }
+            element={user ? <Navigate to="/" replace /> : <RegisterPage />}
           />
           <Route
             path="forgot-password"
             element={
-              user ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <ForgotPasswordPage />
-              )
+              user ? <Navigate to="/" replace /> : <ForgotPasswordPage />
             }
           />
           <Route
             path="reset-password/:token"
-            element={
-              user ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <ResetPasswordPage />
-              )
-            }
+            element={user ? <Navigate to="/" replace /> : <ResetPasswordPage />}
           />
           <Route path="verify-email/:token" element={<VerifyEmailPage />} />
         </Route>

@@ -37,7 +37,7 @@ const RegisterPage = () => {
     });
 
     if (result.success) {
-      navigate("/dashboard");
+      navigate("/");
     }
   };
 

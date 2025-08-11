@@ -7,7 +7,7 @@ const rateLimit = require("express-rate-limit");
 const path = require("path");
 require("dotenv").config({ path: "../.env" });
 
-const { connectDB } = require("./config/database");
+const { connectDB, closeDB } = require("./config/database");
 const logger = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
 const { notFound } = require("./middleware/notFound");
@@ -136,14 +136,19 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 // Graceful shutdown
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = async (signal) => {
   logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
-  server.close(() => {
+  server.close(async () => {
     logger.info("HTTP server closed.");
 
     // Close database connections
-    // Add any cleanup logic here
+    try {
+      await closeDB();
+      logger.info("Database connections closed.");
+    } catch (error) {
+      logger.error("Error closing database connections:", error);
+    }
 
     process.exit(0);
   });
