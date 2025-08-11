@@ -14,7 +14,7 @@
   --primary-700: #1d4ed8;
   --primary-800: #1e40af;
   --primary-900: #1e3a8a;
-  
+
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
   --gray-200: #e5e7eb;
@@ -34,18 +34,18 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: #111827;
+  color: #f3f4f6;
   line-height: 1.6;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
 
@@ -54,119 +54,119 @@ code {
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
   }
-  
+
   .btn-primary {
     @apply btn bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
   }
-  
+
   .btn-secondary {
     @apply btn bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
   }
-  
+
   .btn-outline {
-    @apply btn bg-transparent border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-blue-500;
+    @apply btn bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 focus:ring-blue-500;
   }
-  
+
   .btn-danger {
     @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
   }
-  
+
   .btn-success {
     @apply btn bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
   }
-  
+
   .btn-sm {
     @apply px-3 py-1.5 text-xs;
   }
-  
+
   .btn-lg {
     @apply px-6 py-3 text-base;
   }
-  
+
   .input {
-    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+    @apply block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-800 text-gray-100;
   }
-  
+
   .input-error {
-    @apply border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500;
+    @apply border-red-400 text-red-100 placeholder-red-400 focus:ring-red-500 focus:border-red-500;
   }
-  
+
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-sm font-medium text-gray-300 mb-1;
   }
-  
+
   .card {
-    @apply bg-white shadow rounded-lg border border-gray-200;
+    @apply bg-gray-800 shadow rounded-lg border border-gray-700;
   }
-  
+
   .card-header {
-    @apply px-6 py-4 border-b border-gray-200;
+    @apply px-6 py-4 border-b border-gray-700;
   }
-  
+
   .card-body {
     @apply px-6 py-4;
   }
-  
+
   .card-footer {
-    @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+    @apply px-6 py-4 border-t border-gray-700 bg-gray-900;
   }
-  
+
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  
+
   .badge-primary {
-    @apply badge bg-blue-100 text-blue-800;
+    @apply badge bg-blue-900 text-blue-200;
   }
-  
+
   .badge-success {
-    @apply badge bg-green-100 text-green-800;
+    @apply badge bg-green-900 text-green-200;
   }
-  
+
   .badge-warning {
-    @apply badge bg-yellow-100 text-yellow-800;
+    @apply badge bg-yellow-900 text-yellow-200;
   }
-  
+
   .badge-danger {
-    @apply badge bg-red-100 text-red-800;
+    @apply badge bg-red-900 text-red-200;
   }
-  
+
   .badge-gray {
-    @apply badge bg-gray-100 text-gray-800;
+    @apply badge bg-gray-700 text-gray-200;
   }
-  
+
   .table {
     @apply min-w-full divide-y divide-gray-200;
   }
-  
+
   .table-header {
     @apply bg-gray-50;
   }
-  
+
   .table-header-cell {
     @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
   }
-  
+
   .table-body {
     @apply bg-white divide-y divide-gray-200;
   }
-  
+
   .table-cell {
     @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
   }
-  
+
   .sidebar-nav {
     @apply space-y-1;
   }
-  
+
   .sidebar-nav-item {
     @apply flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-150;
   }
-  
+
   .sidebar-nav-item-active {
     @apply sidebar-nav-item bg-blue-100 text-blue-900;
   }
-  
+
   .sidebar-nav-item-inactive {
     @apply sidebar-nav-item text-gray-600 hover:bg-gray-50 hover:text-gray-900;
   }
@@ -177,24 +177,24 @@ code {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
+
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
   }
-  
+
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
-  
+
   .animate-slide-down {
     animation: slideDown 0.3s ease-out;
   }
@@ -243,11 +243,35 @@ code {
 
 /* React Select Styles */
 .react-select__control {
-  @apply border-gray-300 shadow-sm;
+  @apply border-gray-600 shadow-sm bg-gray-800;
 }
 
 .react-select__control--is-focused {
   @apply border-blue-500 ring-1 ring-blue-500;
+}
+
+.react-select__menu {
+  @apply bg-gray-800 border border-gray-600;
+}
+
+.react-select__option {
+  @apply text-gray-300;
+}
+
+.react-select__option--is-focused {
+  @apply bg-gray-700;
+}
+
+.react-select__option--is-selected {
+  @apply bg-blue-600;
+}
+
+.react-select__single-value {
+  @apply text-gray-100;
+}
+
+.react-select__placeholder {
+  @apply text-gray-400;
 }
 
 /* React Modal Styles */
@@ -257,7 +281,7 @@ code {
 }
 
 .ReactModal__Content {
-  @apply rounded-lg shadow-xl border-0 p-0;
+  @apply rounded-lg shadow-xl border-0 p-0 bg-gray-800;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -271,8 +295,12 @@ code {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Print Styles */
@@ -280,11 +308,11 @@ code {
   .no-print {
     display: none !important;
   }
-  
+
   .print-break {
     page-break-before: always;
   }
-  
+
   .print-break-inside-avoid {
     page-break-inside: avoid;
   }

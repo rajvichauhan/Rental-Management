@@ -3,15 +3,15 @@ import { Outlet } from 'react-router-dom';
 
 const AdminLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-sm border-r border-gray-200">
+        <div className="w-64 bg-gray-800 shadow-sm border-r border-gray-700">
           <div className="p-6">
-            <h2 className="text-xl font-bold text-gray-900">Admin Panel</h2>
+            <h2 className="text-xl font-bold text-white">Admin Panel</h2>
           </div>
           <nav className="mt-6">
-            <div className="px-6 py-2 text-gray-600">
+            <div className="px-6 py-2 text-gray-300">
               🚧 Admin navigation will be implemented here
             </div>
           </nav>
