@@ -317,3 +317,28 @@ code {
     page-break-inside: avoid;
   }
 }
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Custom hover effects */
+.group:hover .group-hover\:bg-gray-650 {
+  background-color: #4a5568;
+}
+
+/* Cursor pointer for clickable cards */
+.cursor-pointer {
+  cursor: pointer;
+}
