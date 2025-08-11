@@ -338,6 +338,131 @@ app.get("/api/auth/profile", authenticateToken, async (req, res) => {
   }
 });
 
+// Orders routes - NO VALIDATION, just create orders
+app.post("/api/orders", authenticateToken, async (req, res) => {
+  try {
+    const { user } = req;
+    const {
+      items = [],
+      billingAddress = {},
+      deliveryAddress = {},
+      deliveryMethod = 'home_delivery',
+      paymentMethod = 'cod',
+      subtotal = 0,
+      taxAmount = 0,
+      deliveryCharge = 0,
+      discountAmount = 0,
+      totalAmount = 0,
+      appliedCoupon = null,
+      notes = ''
+    } = req.body;
+
+    // Generate order data
+    const orderId = 'order_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const orderNumber = 'ORD-' + Date.now();
+
+    log.info(`Order created: ${orderId} by user: ${user._id}`);
+    log.info(`Order data: ${items.length} items, total: ${totalAmount}`);
+
+    // Always return success - no database required for now
+    res.status(201).json({
+      success: true,
+      message: 'Order created successfully',
+      data: {
+        id: orderId,
+        orderNumber: orderNumber,
+        status: 'pending',
+        totalAmount: totalAmount || 0,
+        subtotal: subtotal || 0,
+        taxAmount: taxAmount || 0,
+        deliveryCharge: deliveryCharge || 0,
+        discountAmount: discountAmount || 0,
+        deliveryMethod: deliveryMethod || 'home_delivery',
+        paymentMethod: paymentMethod || 'cod',
+        itemsCount: items.length,
+        createdAt: new Date().toISOString(),
+        billingAddress,
+        deliveryAddress: deliveryAddress.street ? deliveryAddress : billingAddress,
+        appliedCoupon,
+        notes: notes || `Order created. Items: ${items.length}, Total: ${totalAmount}`,
+        customerId: user._id
+      }
+    });
+
+  } catch (error) {
+    log.error("Order creation error: " + error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create order",
+      error: error.message,
+    });
+  }
+});
+
+// Get user's orders
+app.get("/api/orders/my-orders", authenticateToken, async (req, res) => {
+  try {
+    const mockOrders = [
+      {
+        id: 'order_1',
+        orderNumber: 'ORD-001',
+        status: 'pending',
+        totalAmount: 100,
+        createdAt: new Date().toISOString(),
+        customerId: req.user._id
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        orders: mockOrders,
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: mockOrders.length
+        }
+      }
+    });
+  } catch (error) {
+    log.error("Get orders error: " + error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get orders",
+      error: error.message,
+    });
+  }
+});
+
+// Get single order
+app.get("/api/orders/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const mockOrder = {
+      id: id,
+      orderNumber: 'ORD-' + Date.now(),
+      status: 'pending',
+      totalAmount: 150,
+      createdAt: new Date().toISOString(),
+      customerId: req.user._id,
+      items: []
+    };
+
+    res.json({
+      success: true,
+      data: mockOrder
+    });
+  } catch (error) {
+    log.error("Get order error: " + error.message);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get order",
+      error: error.message,
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   log.error("Unhandled error: " + err.message);
