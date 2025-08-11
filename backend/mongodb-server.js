@@ -223,6 +223,17 @@ app.get("/api/products", async (req, res) => {
       filter.condition = condition;
     }
 
+    // Add price filtering based on replacement value
+    if (minPrice || maxPrice) {
+      filter.replacementValue = {};
+      if (minPrice) {
+        filter.replacementValue.$gte = parseFloat(minPrice);
+      }
+      if (maxPrice) {
+        filter.replacementValue.$lte = parseFloat(maxPrice);
+      }
+    }
+
     // Build sort object
     const sort = {};
     sort[sortBy] = sortOrder === "desc" ? -1 : 1;
@@ -346,20 +357,21 @@ app.post("/api/orders", authenticateToken, async (req, res) => {
       items = [],
       billingAddress = {},
       deliveryAddress = {},
-      deliveryMethod = 'home_delivery',
-      paymentMethod = 'cod',
+      deliveryMethod = "home_delivery",
+      paymentMethod = "cod",
       subtotal = 0,
       taxAmount = 0,
       deliveryCharge = 0,
       discountAmount = 0,
       totalAmount = 0,
       appliedCoupon = null,
-      notes = ''
+      notes = "",
     } = req.body;
 
     // Generate order data
-    const orderId = 'order_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-    const orderNumber = 'ORD-' + Date.now();
+    const orderId =
+      "order_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+    const orderNumber = "ORD-" + Date.now();
 
     log.info(`Order created: ${orderId} by user: ${user._id}`);
     log.info(`Order data: ${items.length} items, total: ${totalAmount}`);
@@ -367,28 +379,31 @@ app.post("/api/orders", authenticateToken, async (req, res) => {
     // Always return success - no database required for now
     res.status(201).json({
       success: true,
-      message: 'Order created successfully',
+      message: "Order created successfully",
       data: {
         id: orderId,
         orderNumber: orderNumber,
-        status: 'pending',
+        status: "pending",
         totalAmount: totalAmount || 0,
         subtotal: subtotal || 0,
         taxAmount: taxAmount || 0,
         deliveryCharge: deliveryCharge || 0,
         discountAmount: discountAmount || 0,
-        deliveryMethod: deliveryMethod || 'home_delivery',
-        paymentMethod: paymentMethod || 'cod',
+        deliveryMethod: deliveryMethod || "home_delivery",
+        paymentMethod: paymentMethod || "cod",
         itemsCount: items.length,
         createdAt: new Date().toISOString(),
         billingAddress,
-        deliveryAddress: deliveryAddress.street ? deliveryAddress : billingAddress,
+        deliveryAddress: deliveryAddress.street
+          ? deliveryAddress
+          : billingAddress,
         appliedCoupon,
-        notes: notes || `Order created. Items: ${items.length}, Total: ${totalAmount}`,
-        customerId: user._id
-      }
+        notes:
+          notes ||
+          `Order created. Items: ${items.length}, Total: ${totalAmount}`,
+        customerId: user._id,
+      },
     });
-
   } catch (error) {
     log.error("Order creation error: " + error.message);
     res.status(500).json({
@@ -404,13 +419,13 @@ app.get("/api/orders/my-orders", authenticateToken, async (req, res) => {
   try {
     const mockOrders = [
       {
-        id: 'order_1',
-        orderNumber: 'ORD-001',
-        status: 'pending',
+        id: "order_1",
+        orderNumber: "ORD-001",
+        status: "pending",
         totalAmount: 100,
         createdAt: new Date().toISOString(),
-        customerId: req.user._id
-      }
+        customerId: req.user._id,
+      },
     ];
 
     res.json({
@@ -420,9 +435,9 @@ app.get("/api/orders/my-orders", authenticateToken, async (req, res) => {
         pagination: {
           page: 1,
           limit: 10,
-          total: mockOrders.length
-        }
-      }
+          total: mockOrders.length,
+        },
+      },
     });
   } catch (error) {
     log.error("Get orders error: " + error.message);
@@ -441,17 +456,17 @@ app.get("/api/orders/:id", authenticateToken, async (req, res) => {
 
     const mockOrder = {
       id: id,
-      orderNumber: 'ORD-' + Date.now(),
-      status: 'pending',
+      orderNumber: "ORD-" + Date.now(),
+      status: "pending",
       totalAmount: 150,
       createdAt: new Date().toISOString(),
       customerId: req.user._id,
-      items: []
+      items: [],
     };
 
     res.json({
       success: true,
-      data: mockOrder
+      data: mockOrder,
     });
   } catch (error) {
     log.error("Get order error: " + error.message);

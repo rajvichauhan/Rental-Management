@@ -70,6 +70,22 @@ const ProductsPage = () => {
           params.search = searchTerm;
         }
 
+        // Add price range filtering based on replacement value
+        if (priceRange !== "all") {
+          switch (priceRange) {
+            case "low":
+              params.maxPrice = 50;
+              break;
+            case "medium":
+              params.minPrice = 50;
+              params.maxPrice = 200;
+              break;
+            case "high":
+              params.minPrice = 200;
+              break;
+          }
+        }
+
         const response = await productsAPI.getAll(params);
         setProducts(response.data.data.products);
         setPagination(response.data.data.pagination);
@@ -82,17 +98,35 @@ const ProductsPage = () => {
     };
 
     fetchProducts();
-  }, [currentPage, selectedCategory, searchTerm, sortBy, sortOrder]);
+  }, [
+    currentPage,
+    selectedCategory,
+    searchTerm,
+    sortBy,
+    sortOrder,
+    priceRange,
+  ]);
 
   const colors = ["-", "-", "-", "-"];
   const priceRanges = ["-", "-", "-", "-"];
 
-  // Helper function to get product price
+  // Helper function to get product daily rental price
   const getProductPrice = (product) => {
     const dailyPricing = product.pricingRules?.find(
       (rule) => rule.pricingType === "daily" && rule.isActive
     );
     return dailyPricing ? dailyPricing.basePrice : 0;
+  };
+
+  // Helper function to get product image URL
+  const getProductImageUrl = (product) => {
+    if (product.images && product.images.length > 0) {
+      const imageName = product.images[0];
+      // Convert .jpg to .svg for our placeholder images
+      const svgImageName = imageName.replace(".jpg", ".svg");
+      return `/images/products/${svgImageName}`;
+    }
+    return null;
   };
 
   // Handle sort change
@@ -150,7 +184,7 @@ const ProductsPage = () => {
       productId: product._id || product.id,
       name: product.name,
       price: getProductPrice(product),
-      image: product.images?.[0] || null
+      image: product.images?.[0] || null,
     });
   };
 
@@ -263,10 +297,10 @@ const ProductsPage = () => {
                     value={getCurrentSortValue()}
                     onChange={(e) => handleSortChange(e.target.value)}
                   >
-                    <option value="name"> Name A-Z</option>
-                    <option value="price-low"> Price: Low to High</option>
-                    <option value="price-high"> Price: High to Low</option>
-                    <option value="newest"> Newest First</option>
+                    <option value="name">📝 Name A-Z</option>
+                    <option value="price-low">💰 Value: Low to High</option>
+                    <option value="price-high">💰 Value: High to Low</option>
+                    <option value="newest">🆕 Newest First</option>
                   </select>
                   <FiChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
@@ -297,6 +331,7 @@ const ProductsPage = () => {
 
                 {/* Clear Filters Button */}
                 {(selectedCategory !== "all" ||
+                  priceRange !== "all" ||
                   searchTerm ||
                   sortBy !== "name" ||
                   sortOrder !== "asc") && (
@@ -352,8 +387,26 @@ const ProductsPage = () => {
                           className="block cursor-pointer"
                         >
                           {/* Product Image */}
-                          <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors">
-                            <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
+                          <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600 group-hover:bg-gray-650 transition-colors overflow-hidden">
+                            {getProductImageUrl(product) ? (
+                              <img
+                                src={getProductImageUrl(product)}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center"
+                              style={{
+                                display: getProductImageUrl(product)
+                                  ? "none"
+                                  : "flex",
+                              }}
+                            >
                               <div className="text-xs text-gray-400 text-center">
                                 <div className="mb-1">📊</div>
                                 <div>IMG</div>
@@ -367,11 +420,18 @@ const ProductsPage = () => {
                               {product.name}
                             </h3>
                             <p className="text-gray-400 text-sm mb-2 line-clamp-2">
-                              {product.description || "No description available"}
+                              {product.description ||
+                                "No description available"}
                             </p>
-                            <p className="text-gray-300 text-lg font-semibold mb-3">
-                              ₹{getProductPrice(product).toFixed(2)}/day
-                            </p>
+                            <div className="mb-3">
+                              <p className="text-gray-300 text-lg font-semibold">
+                                ₹{getProductPrice(product).toFixed(2)}/day
+                              </p>
+                              <p className="text-gray-500 text-xs">
+                                Value: ₹
+                                {(product.replacementValue || 0).toFixed(2)}
+                              </p>
+                            </div>
                           </div>
                         </Link>
 
@@ -390,8 +450,8 @@ const ProductsPage = () => {
                               onClick={(e) => handleAddToWishlist(product, e)}
                               className={`p-2 rounded transition-colors ${
                                 isInWishlist(product._id || product.id)
-                                  ? 'bg-red-600 text-white hover:bg-red-700'
-                                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+                                  ? "bg-red-600 text-white hover:bg-red-700"
+                                  : "bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white"
                               }`}
                             >
                               <FiHeart size={16} />
@@ -412,8 +472,26 @@ const ProductsPage = () => {
                             className="flex items-center gap-4 flex-1 cursor-pointer"
                           >
                             {/* Product Image */}
-                            <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors">
-                              <div className="text-xs text-gray-400 text-center">
+                            <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-gray-650 transition-colors overflow-hidden">
+                              {getProductImageUrl(product) ? (
+                                <img
+                                  src={getProductImageUrl(product)}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onError={(e) => {
+                                    e.target.style.display = "none";
+                                    e.target.nextSibling.style.display = "flex";
+                                  }}
+                                />
+                              ) : null}
+                              <div
+                                className="text-xs text-gray-400 text-center"
+                                style={{
+                                  display: getProductImageUrl(product)
+                                    ? "none"
+                                    : "flex",
+                                }}
+                              >
                                 <div className="mb-1">📊</div>
                                 <div>IMG</div>
                               </div>
@@ -425,12 +503,19 @@ const ProductsPage = () => {
                                 {product.name}
                               </h3>
                               <p className="text-gray-400 text-sm mb-2 line-clamp-1">
-                                {product.description || "No description available"}
+                                {product.description ||
+                                  "No description available"}
                               </p>
                               <div className="flex items-center gap-4">
-                                <p className="text-gray-300 text-lg font-semibold">
-                                  ₹{getProductPrice(product).toFixed(2)}/day
-                                </p>
+                                <div>
+                                  <p className="text-gray-300 text-lg font-semibold">
+                                    ₹{getProductPrice(product).toFixed(2)}/day
+                                  </p>
+                                  <p className="text-gray-500 text-xs">
+                                    Value: ₹
+                                    {(product.replacementValue || 0).toFixed(2)}
+                                  </p>
+                                </div>
                                 <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
                                   SKU: {product.sku || "N/A"}
                                 </span>
@@ -447,9 +532,15 @@ const ProductsPage = () => {
                                 "No description available"}
                             </p>
                             <div className="flex items-center gap-4">
-                              <p className="text-gray-300 text-lg font-semibold">
-                                ₹{getProductPrice(product).toFixed(2)}/day
-                              </p>
+                              <div>
+                                <p className="text-gray-300 text-lg font-semibold">
+                                  ₹{getProductPrice(product).toFixed(2)}/day
+                                </p>
+                                <p className="text-gray-500 text-xs">
+                                  Value: ₹
+                                  {(product.replacementValue || 0).toFixed(2)}
+                                </p>
+                              </div>
                               <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
                                 SKU: {product.sku || "N/A"}
                               </span>
@@ -470,8 +561,8 @@ const ProductsPage = () => {
                               onClick={(e) => handleAddToWishlist(product, e)}
                               className={`p-2 rounded transition-colors ${
                                 isInWishlist(product._id || product.id)
-                                  ? 'bg-red-600 text-white hover:bg-red-700'
-                                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+                                  ? "bg-red-600 text-white hover:bg-red-700"
+                                  : "bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white"
                               }`}
                             >
                               <FiHeart size={16} />

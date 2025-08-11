@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="wheelchairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#wheelchairGradient)" rx="8"/>
+  
+  <!-- Wheelchair -->
+  <g transform="translate(120, 70)">
+    <!-- Large rear wheels -->
+    <circle cx="40" cy="100" r="35" fill="none" stroke="white" stroke-width="4" opacity="0.9"/>
+    <circle cx="40" cy="100" r="25" fill="none" stroke="white" stroke-width="2" opacity="0.7"/>
+    <circle cx="40" cy="100" r="4" fill="white" opacity="0.9"/>
+    
+    <!-- Small front wheels -->
+    <circle cx="120" cy="120" r="15" fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+    <circle cx="120" cy="120" r="3" fill="white" opacity="0.9"/>
+    
+    <!-- Seat -->
+    <rect x="60" y="70" width="50" height="40" rx="5" fill="white" opacity="0.9"/>
+    
+    <!-- Backrest -->
+    <rect x="55" y="30" width="60" height="50" rx="8" fill="white" opacity="0.9"/>
+    
+    <!-- Armrests -->
+    <rect x="50" y="60" width="70" height="8" rx="4" fill="white" opacity="0.8"/>
+    
+    <!-- Frame -->
+    <path d="M 75 135 L 75 110 L 55 80 M 105 135 L 105 110 L 115 80" stroke="white" stroke-width="3" fill="none" opacity="0.8"/>
+    
+    <!-- Footrest -->
+    <rect x="110" y="130" width="20" height="8" rx="2" fill="white" opacity="0.8"/>
+  </g>
+  
+  <text x="200" y="220" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white" text-anchor="middle">Wheelchair</text>
+  <text x="200" y="245" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" opacity="0.8">Comfort Plus Model</text>
+</svg>

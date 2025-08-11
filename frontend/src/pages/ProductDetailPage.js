@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import {
   FiHeart,
   FiShoppingCart,
@@ -10,19 +10,24 @@ import {
   FiShare2,
   FiChevronDown,
   FiChevronRight,
-  FiCheck
-} from 'react-icons/fi';
+  FiChevronLeft,
+  FiCheck,
+  FiCopy,
+  FiMail,
+} from "react-icons/fi";
 import {
   FaFacebookF,
   FaTwitter,
-  FaInstagram
-} from 'react-icons/fa';
-import { productsAPI } from '../services/api';
+  FaInstagram,
+  FaLinkedinIn,
+  FaWhatsapp,
+} from "react-icons/fa";
+import { productsAPI } from "../services/api";
 
-import { useCart } from '../contexts/CartContext';
-import { useWishlist } from '../contexts/WishlistContext';
-import toast from 'react-hot-toast';
-import LoadingSpinner from '../components/UI/LoadingSpinner';
+import { useCart } from "../contexts/CartContext";
+import { useWishlist } from "../contexts/WishlistContext";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../components/UI/LoadingSpinner";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -36,12 +41,13 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [couponCode, setCouponCode] = useState("");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addToCartSuccess, setAddToCartSuccess] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Random product descriptions
   const getRandomDescription = () => {
@@ -50,7 +56,7 @@ const ProductDetailPage = () => {
       "Premium grade equipment designed for heavy-duty use. Features advanced technology and robust construction to ensure reliable performance in demanding environments.",
       "Versatile and user-friendly equipment suitable for various applications. Easy to operate with comprehensive safety features and excellent build quality.",
       "State-of-the-art equipment with cutting-edge features. Ideal for professional use with superior performance characteristics and modern design.",
-      "Reliable and efficient equipment perfect for commercial and residential applications. Engineered for optimal performance with minimal maintenance requirements."
+      "Reliable and efficient equipment perfect for commercial and residential applications. Engineered for optimal performance with minimal maintenance requirements.",
     ];
     return descriptions[Math.floor(Math.random() * descriptions.length)];
   };
@@ -61,7 +67,7 @@ const ProductDetailPage = () => {
       "• Rental period minimum 1 day, maximum 30 days\n• Security deposit required for all rentals\n• Equipment must be returned in original condition\n• Late return fees apply after grace period\n• Damage assessment charges may apply\n• Renter responsible for equipment during rental period",
       "• Valid ID and contact information required\n• Equipment inspection required before and after rental\n• No subletting or transfer of rental agreement\n• Cancellation policy: 24 hours notice required\n• Insurance coverage recommended for high-value items\n• Technical support available during business hours",
       "• Delivery and pickup services available for additional fee\n• Equipment training provided if required\n• Maintenance and repairs covered during rental period\n• Replacement equipment provided in case of malfunction\n• Rental extensions subject to availability\n• Payment due before equipment release",
-      "• Professional use only for commercial grade equipment\n• Safety guidelines must be followed at all times\n• Regular maintenance checks required for long-term rentals\n• Environmental conditions may affect rental terms\n• Liability insurance required for certain equipment\n• Return cleaning fee may apply if necessary"
+      "• Professional use only for commercial grade equipment\n• Safety guidelines must be followed at all times\n• Regular maintenance checks required for long-term rentals\n• Environmental conditions may affect rental terms\n• Liability insurance required for certain equipment\n• Return cleaning fee may apply if necessary",
     ];
     return terms[Math.floor(Math.random() * terms.length)];
   };
@@ -74,8 +80,8 @@ const ProductDetailPage = () => {
         const response = await productsAPI.getById(id);
         setProduct(response.data.data);
       } catch (error) {
-        console.error('Error fetching product:', error);
-        setError('Failed to load product details');
+        console.error("Error fetching product:", error);
+        setError("Failed to load product details");
       } finally {
         setLoading(false);
       }
@@ -94,9 +100,21 @@ const ProductDetailPage = () => {
     return dailyPricing ? dailyPricing.basePrice : 0;
   };
 
+  // Helper function to get product image URL
+  const getProductImageUrl = (product, index = 0) => {
+    if (product?.images && product.images.length > 0) {
+      const imageIndex = Math.min(index, product.images.length - 1);
+      const imageName = product.images[imageIndex];
+      // Convert .jpg to .svg for our placeholder images
+      const svgImageName = imageName.replace(".jpg", ".svg");
+      return `/images/products/${svgImageName}`;
+    }
+    return null;
+  };
+
   // Helper function to get available inventory count
   const getAvailableInventoryCount = (product) => {
-    return product?.inventory?.filter(item => item.isAvailable)?.length || 0;
+    return product?.inventory?.filter((item) => item.isAvailable)?.length || 0;
   };
 
   // Calculate rental duration in days
@@ -119,7 +137,10 @@ const ProductDetailPage = () => {
   // Validate rental dates
   const validateRentalDates = () => {
     if (!startDate || !endDate) {
-      return { isValid: false, message: 'Please select both start and end dates' };
+      return {
+        isValid: false,
+        message: "Please select both start and end dates",
+      };
     }
 
     const start = new Date(startDate);
@@ -128,19 +149,19 @@ const ProductDetailPage = () => {
     today.setHours(0, 0, 0, 0);
 
     if (start < today) {
-      return { isValid: false, message: 'Start date cannot be in the past' };
+      return { isValid: false, message: "Start date cannot be in the past" };
     }
 
     if (end <= start) {
-      return { isValid: false, message: 'End date must be after start date' };
+      return { isValid: false, message: "End date must be after start date" };
     }
 
     const duration = calculateRentalDuration(startDate, endDate);
     if (duration > 30) {
-      return { isValid: false, message: 'Maximum rental period is 30 days' };
+      return { isValid: false, message: "Maximum rental period is 30 days" };
     }
 
-    return { isValid: true, message: '' };
+    return { isValid: true, message: "" };
   };
 
   // Handle quantity change
@@ -164,20 +185,22 @@ const ProductDetailPage = () => {
 
     // Check if product is available
     if (!product || !product.isActive) {
-      toast.error('This product is currently unavailable');
+      toast.error("This product is currently unavailable");
       return;
     }
 
     // Check if there's available inventory
     const availableCount = getAvailableInventoryCount(product);
     if (availableCount === 0) {
-      toast.error('This product is currently out of stock');
+      toast.error("This product is currently out of stock");
       return;
     }
 
     // Check if requested quantity is available
     if (quantity > availableCount) {
-      toast.error(`Only ${availableCount} unit${availableCount > 1 ? 's' : ''} available`);
+      toast.error(
+        `Only ${availableCount} unit${availableCount > 1 ? "s" : ""} available`
+      );
       return;
     }
 
@@ -185,7 +208,7 @@ const ProductDetailPage = () => {
 
     try {
       // Simulate API call delay for better UX
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const duration = calculateRentalDuration(startDate, endDate);
       const totalCost = calculateTotalCost();
@@ -196,12 +219,12 @@ const ProductDetailPage = () => {
           id: product._id || product.id,
           name: product.name,
           price: getProductPrice(product),
-          image: product.images?.[0] || null
+          image: product.images?.[0] || null,
         },
         quantity,
         {
           start: startDate,
-          end: endDate
+          end: endDate,
         }
       );
 
@@ -210,7 +233,9 @@ const ProductDetailPage = () => {
 
       // Show success message with details
       toast.success(
-        `${product.name} added to cart! ${duration} day${duration > 1 ? 's' : ''} rental for ₹${totalCost.toLocaleString()}`,
+        `${product.name} added to cart! ${duration} day${
+          duration > 1 ? "s" : ""
+        } rental for ₹${totalCost.toLocaleString()}`,
         { duration: 4000 }
       );
 
@@ -218,10 +243,9 @@ const ProductDetailPage = () => {
       setTimeout(() => {
         setAddToCartSuccess(false);
       }, 2000);
-
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast.error('Failed to add item to cart. Please try again.');
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add item to cart. Please try again.");
     } finally {
       setIsAddingToCart(false);
     }
@@ -233,7 +257,7 @@ const ProductDetailPage = () => {
       productId: product._id || product.id,
       name: product.name,
       price: getProductPrice(product),
-      image: product.images?.[0] || null
+      image: product.images?.[0] || null,
     });
   };
 
@@ -241,12 +265,14 @@ const ProductDetailPage = () => {
   const handleApplyCoupon = () => {
     if (couponCode.trim()) {
       // Simulate coupon validation
-      const validCoupons = ['SAVE10', 'WELCOME20', 'FIRST15', 'BULK25'];
+      const validCoupons = ["SAVE10", "WELCOME20", "FIRST15", "BULK25"];
       if (validCoupons.includes(couponCode.toUpperCase())) {
-        alert(`Coupon "${couponCode.toUpperCase()}" applied successfully! You'll see the discount at checkout.`);
-        setCouponCode('');
+        alert(
+          `Coupon "${couponCode.toUpperCase()}" applied successfully! You'll see the discount at checkout.`
+        );
+        setCouponCode("");
       } else {
-        alert('Invalid coupon code. Please try again.');
+        alert("Invalid coupon code. Please try again.");
       }
     }
   };
@@ -263,9 +289,9 @@ const ProductDetailPage = () => {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 mb-4">{error || 'Product not found'}</p>
+          <p className="text-red-400 mb-4">{error || "Product not found"}</p>
           <button
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
             Back to Products
@@ -288,7 +314,10 @@ const ProductDetailPage = () => {
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <nav className="flex items-center space-x-2 text-sm">
-                <Link to="/products" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/products"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   All Products
                 </Link>
                 <FiChevronRight className="text-gray-500" size={14} />
@@ -303,7 +332,10 @@ const ProductDetailPage = () => {
                   <option value="weekly">Weekly Rates</option>
                   <option value="monthly">Monthly Rates</option>
                 </select>
-                <FiChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+                <FiChevronDown
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                  size={12}
+                />
               </div>
             </div>
           </div>
@@ -314,10 +346,28 @@ const ProductDetailPage = () => {
             {/* Left Column - Product Image and Details */}
             <div className="space-y-6">
               {/* Product Image */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 flex items-center justify-center">
-                <div className="w-64 h-64 bg-gray-700 rounded-lg border-2 border-gray-600 flex items-center justify-center relative">
-                  {/* Placeholder image with product icon */}
-                  <div className="text-center">
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-8">
+                <div className="w-64 h-64 bg-gray-700 rounded-lg border-2 border-gray-600 flex items-center justify-center relative overflow-hidden mx-auto">
+                  {getProductImageUrl(product, currentImageIndex) ? (
+                    <img
+                      src={getProductImageUrl(product, currentImageIndex)}
+                      alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "block";
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback placeholder */}
+                  <div
+                    className="text-center"
+                    style={{
+                      display: getProductImageUrl(product, currentImageIndex)
+                        ? "none"
+                        : "block",
+                    }}
+                  >
                     <div className="w-20 h-24 bg-gray-600 rounded border border-gray-500 mx-auto mb-2 flex items-center justify-center relative">
                       {/* Bookmark/ribbon icon in corner */}
                       <div className="absolute -top-1 -right-1 w-6 h-8 bg-gray-500 rounded-sm flex items-center justify-center">
@@ -327,7 +377,56 @@ const ProductDetailPage = () => {
                     </div>
                     <div className="text-xs text-gray-400">Product Image</div>
                   </div>
+
+                  {/* Image Navigation */}
+                  {product?.images && product.images.length > 1 && (
+                    <>
+                      <button
+                        onClick={() =>
+                          setCurrentImageIndex((prev) =>
+                            prev > 0 ? prev - 1 : product.images.length - 1
+                          )
+                        }
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
+                      >
+                        <FiChevronLeft size={20} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentImageIndex((prev) =>
+                            prev < product.images.length - 1 ? prev + 1 : 0
+                          )
+                        }
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
+                      >
+                        <FiChevronRight size={20} />
+                      </button>
+                    </>
+                  )}
                 </div>
+
+                {/* Image Thumbnails */}
+                {product?.images && product.images.length > 1 && (
+                  <div className="flex justify-center gap-2 mt-4">
+                    {product.images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`w-12 h-12 rounded border-2 overflow-hidden transition-all ${
+                          currentImageIndex === index
+                            ? "border-blue-500"
+                            : "border-gray-600 hover:border-gray-500"
+                        }`}
+                      >
+                        <img
+                          src={getProductImageUrl(product, index)}
+                          alt={`${product.name} thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Add to Wishlist Button */}
@@ -335,42 +434,80 @@ const ProductDetailPage = () => {
                 onClick={handleAddToWishlist}
                 className={`w-full py-3 px-6 rounded-lg border-2 transition-colors ${
                   isInWishlist(product._id || product.id)
-                    ? 'bg-red-600 border-red-500 text-white'
-                    : 'bg-transparent border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white'
+                    ? "bg-red-600 border-red-500 text-white"
+                    : "bg-transparent border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white"
                 }`}
               >
                 <FiHeart className="inline mr-2" size={18} />
-                {isInWishlist(product._id || product.id) ? 'In Wishlist' : 'Add to wish list'}
+                {isInWishlist(product._id || product.id)
+                  ? "In Wishlist"
+                  : "Add to wish list"}
               </button>
 
               {/* Product Descriptions */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Product descriptions</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Product descriptions
+                </h3>
                 <div className="text-gray-300 space-y-2">
                   <p>{product.description || getRandomDescription()}</p>
                   {!showFullDescription && (
                     <>
-                      <p className="text-gray-400">Additional features include advanced safety mechanisms, user-friendly controls, and comprehensive warranty coverage.</p>
-                      <p className="text-gray-400">Perfect for both beginners and professionals, with detailed instruction manual and 24/7 customer support.</p>
-                      <p className="text-gray-400">Environmentally friendly design with energy-efficient operation and sustainable materials.</p>
+                      <p className="text-gray-400">
+                        Additional features include advanced safety mechanisms,
+                        user-friendly controls, and comprehensive warranty
+                        coverage.
+                      </p>
+                      <p className="text-gray-400">
+                        Perfect for both beginners and professionals, with
+                        detailed instruction manual and 24/7 customer support.
+                      </p>
+                      <p className="text-gray-400">
+                        Environmentally friendly design with energy-efficient
+                        operation and sustainable materials.
+                      </p>
                     </>
                   )}
                   {showFullDescription && (
                     <>
-                      <p className="text-gray-300">This premium equipment features state-of-the-art technology and has been thoroughly tested for reliability and performance. Our rental service includes comprehensive insurance coverage and technical support throughout your rental period.</p>
-                      <p className="text-gray-300">Specifications include industry-standard certifications, multi-language user interface, and compatibility with various accessories. Regular maintenance ensures optimal performance and safety compliance.</p>
-                      <p className="text-gray-300">Ideal for professional projects, events, and specialized applications. Our team provides training and setup assistance to ensure you get the most out of your rental experience.</p>
+                      <p className="text-gray-300">
+                        This premium equipment features state-of-the-art
+                        technology and has been thoroughly tested for
+                        reliability and performance. Our rental service includes
+                        comprehensive insurance coverage and technical support
+                        throughout your rental period.
+                      </p>
+                      <p className="text-gray-300">
+                        Specifications include industry-standard certifications,
+                        multi-language user interface, and compatibility with
+                        various accessories. Regular maintenance ensures optimal
+                        performance and safety compliance.
+                      </p>
+                      <p className="text-gray-300">
+                        Ideal for professional projects, events, and specialized
+                        applications. Our team provides training and setup
+                        assistance to ensure you get the most out of your rental
+                        experience.
+                      </p>
 
                       {/* Specifications */}
                       <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Key Specifications:</h4>
+                        <h4 className="text-white font-medium mb-2">
+                          Key Specifications:
+                        </h4>
                         <ul className="text-gray-300 text-sm space-y-1">
                           <li>• Weight: 15-25 kg (varies by model)</li>
                           <li>• Dimensions: 60cm x 40cm x 30cm</li>
-                          <li>• Power Requirements: 220V AC / Battery operated</li>
+                          <li>
+                            • Power Requirements: 220V AC / Battery operated
+                          </li>
                           <li>• Operating Temperature: -10°C to +50°C</li>
-                          <li>• Certification: CE, ISO 9001, Safety Standards</li>
-                          <li>• Warranty: Full coverage during rental period</li>
+                          <li>
+                            • Certification: CE, ISO 9001, Safety Standards
+                          </li>
+                          <li>
+                            • Warranty: Full coverage during rental period
+                          </li>
                         </ul>
                       </div>
                     </>
@@ -380,7 +517,7 @@ const ProductDetailPage = () => {
                   onClick={() => setShowFullDescription(!showFullDescription)}
                   className="text-blue-400 hover:text-blue-300 mt-3 flex items-center gap-1"
                 >
-                  {showFullDescription ? 'Read Less' : 'Read More'}
+                  {showFullDescription ? "Read Less" : "Read More"}
                   <FiChevronRight size={14} />
                 </button>
               </div>
@@ -390,9 +527,13 @@ const ProductDetailPage = () => {
             <div className="space-y-6">
               {/* Product Name and Price */}
               <div>
-                <h1 className="text-3xl font-bold text-white mb-4">{product.name}</h1>
+                <h1 className="text-3xl font-bold text-white mb-4">
+                  {product.name}
+                </h1>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-bold text-white">₹ {getProductPrice(product)}</span>
+                  <span className="text-3xl font-bold text-white">
+                    ₹ {getProductPrice(product)}
+                  </span>
                   <span className="text-gray-400">per day</span>
                 </div>
 
@@ -400,27 +541,36 @@ const ProductDetailPage = () => {
                 <div className="mt-2">
                   {getAvailableInventoryCount(product) > 0 ? (
                     <span className="text-green-400 text-sm">
-                      ✓ {getAvailableInventoryCount(product)} unit{getAvailableInventoryCount(product) > 1 ? 's' : ''} available
+                      ✓ {getAvailableInventoryCount(product)} unit
+                      {getAvailableInventoryCount(product) > 1 ? "s" : ""}{" "}
+                      available
                     </span>
                   ) : (
-                    <span className="text-red-400 text-sm">
-                      ✗ Out of stock
-                    </span>
+                    <span className="text-red-400 text-sm">✗ Out of stock</span>
                   )}
                 </div>
 
                 {/* Rental Summary */}
                 {startDate && endDate && (
                   <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg">
-                    <h3 className="text-lg font-semibold text-white mb-2">Rental Summary</h3>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      Rental Summary
+                    </h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Duration:</span>
-                        <span className="text-white">{calculateRentalDuration(startDate, endDate)} day{calculateRentalDuration(startDate, endDate) > 1 ? 's' : ''}</span>
+                        <span className="text-white">
+                          {calculateRentalDuration(startDate, endDate)} day
+                          {calculateRentalDuration(startDate, endDate) > 1
+                            ? "s"
+                            : ""}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Daily Rate:</span>
-                        <span className="text-white">₹{getProductPrice(product).toLocaleString()}</span>
+                        <span className="text-white">
+                          ₹{getProductPrice(product).toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Quantity:</span>
@@ -429,7 +579,9 @@ const ProductDetailPage = () => {
                       <div className="border-t border-gray-600 pt-2 mt-2">
                         <div className="flex justify-between font-semibold">
                           <span className="text-white">Total Cost:</span>
-                          <span className="text-green-400">₹{calculateTotalCost().toLocaleString()}</span>
+                          <span className="text-green-400">
+                            ₹{calculateTotalCost().toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -439,7 +591,9 @@ const ProductDetailPage = () => {
 
               {/* Date Range Picker */}
               <div className="space-y-4">
-                <label className="block text-gray-300 font-medium">Rental Period</label>
+                <label className="block text-gray-300 font-medium">
+                  Rental Period
+                </label>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400">From :</span>
@@ -450,7 +604,10 @@ const ProductDetailPage = () => {
                         onChange={(e) => setStartDate(e.target.value)}
                         className="bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                       />
-                      <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                      <FiCalendar
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                        size={16}
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -463,7 +620,10 @@ const ProductDetailPage = () => {
                         min={startDate}
                         className="bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                       />
-                      <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                      <FiCalendar
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                        size={16}
+                      />
                     </div>
                   </div>
                 </div>
@@ -498,10 +658,10 @@ const ProductDetailPage = () => {
                   disabled={isAddingToCart || addToCartSuccess}
                   className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
                     addToCartSuccess
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      ? "bg-green-600 hover:bg-green-700 text-white"
                       : isAddingToCart
-                      ? 'bg-blue-500 text-white cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      ? "bg-blue-500 text-white cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
                 >
                   {isAddingToCart ? (
@@ -532,13 +692,13 @@ const ProductDetailPage = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => navigate('/cart')}
+                        onClick={() => navigate("/cart")}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
                       >
                         View Cart
                       </button>
                       <button
-                        onClick={() => navigate('/checkout')}
+                        onClick={() => navigate("/checkout")}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
                       >
                         Checkout
@@ -567,19 +727,43 @@ const ProductDetailPage = () => {
                   </button>
                 </div>
                 <div className="text-xs text-gray-400">
-                  Try: <span className="text-blue-400 cursor-pointer hover:text-blue-300" onClick={() => setCouponCode('SAVE10')}>SAVE10</span>,
-                  <span className="text-blue-400 cursor-pointer hover:text-blue-300 ml-1" onClick={() => setCouponCode('WELCOME20')}>WELCOME20</span>,
-                  <span className="text-blue-400 cursor-pointer hover:text-blue-300 ml-1" onClick={() => setCouponCode('FIRST15')}>FIRST15</span>
+                  Try:{" "}
+                  <span
+                    className="text-blue-400 cursor-pointer hover:text-blue-300"
+                    onClick={() => setCouponCode("SAVE10")}
+                  >
+                    SAVE10
+                  </span>
+                  ,
+                  <span
+                    className="text-blue-400 cursor-pointer hover:text-blue-300 ml-1"
+                    onClick={() => setCouponCode("WELCOME20")}
+                  >
+                    WELCOME20
+                  </span>
+                  ,
+                  <span
+                    className="text-blue-400 cursor-pointer hover:text-blue-300 ml-1"
+                    onClick={() => setCouponCode("FIRST15")}
+                  >
+                    FIRST15
+                  </span>
                 </div>
               </div>
 
               {/* Terms & Conditions */}
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Terms & condition</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Terms & condition
+                </h3>
                 <div className="text-gray-300 space-y-1">
-                  {getRandomTerms().split('\n').map((term, index) => (
-                    <p key={index} className="text-gray-400 text-sm">{term}</p>
-                  ))}
+                  {getRandomTerms()
+                    .split("\n")
+                    .map((term, index) => (
+                      <p key={index} className="text-gray-400 text-sm">
+                        {term}
+                      </p>
+                    ))}
                 </div>
               </div>
 
@@ -589,31 +773,109 @@ const ProductDetailPage = () => {
                   <FiShare2 size={18} />
                   Share :
                 </h3>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <button
-                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                    onClick={() => {
+                      const subject = `Check out this rental: ${product.name}`;
+                      const body = `Hi there!
+
+I found this great rental item that might interest you:
+
+📦 ${product.name}
+💰 ₹${getProductPrice(product)}/day
+
+${
+  product.description || "High-quality rental equipment perfect for your needs."
+}
+
+🔗 View Details: ${window.location.href}
+
+Best regards!`;
+                      window.location.href = `mailto:?subject=${encodeURIComponent(
+                        subject
+                      )}&body=${encodeURIComponent(body)}`;
+                    }}
+                    className="p-3 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center"
+                    title="Share via Email"
+                  >
+                    <FiMail className="text-white" size={16} />
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                          window.location.href
+                        )}`,
+                        "_blank"
+                      )
+                    }
                     className="p-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center justify-center"
                     title="Share on Facebook"
                   >
                     <FaFacebookF className="text-white" size={16} />
                   </button>
                   <button
-                    onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(`Check out this rental: ${product.name}`)}`, '_blank')}
+                    onClick={() =>
+                      window.open(
+                        `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                          window.location.href
+                        )}&text=${encodeURIComponent(
+                          `Check out this rental: ${product.name}`
+                        )}`,
+                        "_blank"
+                      )
+                    }
                     className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center border border-gray-600"
                     title="Share on X (Twitter)"
                   >
                     <FaTwitter className="text-white" size={16} />
                   </button>
                   <button
-                    onClick={() => {
-                      // Instagram doesn't have a direct share URL, so we'll copy the link
-                      navigator.clipboard.writeText(window.location.href);
-                      alert('Link copied to clipboard! You can now share it on Instagram.');
-                    }}
+                    onClick={() =>
+                      window.open("https://www.instagram.com/", "_blank")
+                    }
                     className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-lg transition-colors flex items-center justify-center"
-                    title="Copy link for Instagram"
+                    title="Open Instagram"
                   >
                     <FaInstagram className="text-white" size={16} />
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                          window.location.href
+                        )}`,
+                        "_blank"
+                      )
+                    }
+                    className="p-3 bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors flex items-center justify-center"
+                    title="Share on LinkedIn"
+                  >
+                    <FaLinkedinIn className="text-white" size={16} />
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://wa.me/?text=${encodeURIComponent(
+                          `Check out this rental: ${product.name} - ${window.location.href}`
+                        )}`,
+                        "_blank"
+                      )
+                    }
+                    className="p-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center justify-center"
+                    title="Share on WhatsApp"
+                  >
+                    <FaWhatsapp className="text-white" size={16} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Link copied to clipboard!");
+                    }}
+                    className="p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center border border-gray-600"
+                    title="Copy Link"
+                  >
+                    <FiCopy className="text-white" size={16} />
                   </button>
                 </div>
               </div>
