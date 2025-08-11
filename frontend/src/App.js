@@ -64,20 +64,15 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        {/* Default route - redirect based on auth status */}
+        {/* Default route - redirect to home */}
         <Route
           path="/"
-          element={
-            user ? (
-              <Navigate to={getRedirectPath(user.role)} replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<Navigate to="/home" replace />}
         />
 
         {/* Public Routes */}
         <Route path="/" element={<Layout />}>
+          <Route path="home" element={<HomePage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/:id" element={<ProductDetailPage />} />
           <Route path="wishlist" element={<WishlistPage />} />

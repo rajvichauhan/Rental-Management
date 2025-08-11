@@ -11,6 +11,7 @@ import {
   FiArrowLeft
 } from "react-icons/fi";
 import { useCart } from "../contexts/CartContext";
+import { useWishlist } from "../contexts/WishlistContext";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
 
@@ -26,6 +27,7 @@ const CartPage = () => {
     calculateRentalDuration,
     calculateItemSubtotal
   } = useCart();
+  const { addToWishlist } = useWishlist();
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -44,6 +46,17 @@ const CartPage = () => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  // Handle add to wishlist
+  const handleAddToWishlist = (item) => {
+    addToWishlist({
+      productId: item.productId,
+      name: item.name,
+      price: item.price,
+      image: item.image
+    });
+    toast.success(`${item.name} added to wishlist`);
   };
 
   // Handle quantity update
@@ -277,7 +290,7 @@ const CartPage = () => {
                             {/* Action Buttons */}
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => {/* Add to wishlist functionality */}}
+                                onClick={() => handleAddToWishlist(item)}
                                 className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                                 title="Add to Wishlist"
                               >
