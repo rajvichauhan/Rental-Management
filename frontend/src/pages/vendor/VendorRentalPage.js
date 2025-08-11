@@ -10,6 +10,8 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import RentalWorkflowIndicator from '../../components/vendor/RentalWorkflowIndicator';
 import RentalOrderActions from '../../components/vendor/RentalOrderActions';
+import OrderIdGenerator from '../../components/vendor/OrderIdGenerator';
+import RentalOrderSummary from '../../components/vendor/RentalOrderSummary';
 
 const VendorRentalPage = () => {
   const { user } = useAuth();
@@ -18,9 +20,23 @@ const VendorRentalPage = () => {
   const [totalPages] = useState(80);
   const [workflowStage, setWorkflowStage] = useState('quotation');
 
-  // Sample rental order data
+  // Generate unique order ID
+  const generateOrderId = () => {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `R${timestamp}${random}`;
+  };
+
+  // Generate unique product ID
+  const generateProductId = () => {
+    const timestamp = Date.now().toString().slice(-4);
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    return `P${timestamp}${random}`;
+  };
+
+  // Sample rental order data with unique ID
   const [rentalOrder, setRentalOrder] = useState({
-    id: 'R0001',
+    id: generateOrderId(),
     customer: '',
     invoiceAddress: '',
     deliveryAddress: '',
@@ -32,7 +48,7 @@ const VendorRentalPage = () => {
     rentalDuration: '',
     orderLines: [
       {
-        id: 1,
+        id: generateProductId(),
         product: 'Product 1',
         quantity: 5,
         unitPrice: 200,
@@ -82,6 +98,83 @@ const VendorRentalPage = () => {
     // Implement PDF export logic
   };
 
+  const handleUpdatePrices = () => {
+    // Prevent price updates for confirmed orders
+    if (workflowStage === 'rental-order') {
+      alert('Cannot update prices for confirmed rental orders');
+      return;
+    }
+
+    if (!rentalOrder.priceList) {
+      alert('Please select a price list first');
+      return;
+    }
+
+    console.log('Updating prices based on price list:', rentalOrder.priceList);
+
+    // Example price updates based on selected price list
+    const priceMultipliers = {
+      standard: 1.0,
+      premium: 1.5,
+      bulk: 0.8
+    };
+
+    const multiplier = priceMultipliers[rentalOrder.priceList] || 1.0;
+
+    const updatedOrderLines = rentalOrder.orderLines.map(line => ({
+      ...line,
+      unitPrice: Math.round(line.unitPrice * multiplier),
+      subTotal: Math.round(line.quantity * line.unitPrice * multiplier)
+    }));
+
+    setRentalOrder(prev => ({
+      ...prev,
+      orderLines: updatedOrderLines
+    }));
+
+    calculateTotals(updatedOrderLines);
+    console.log('Prices updated successfully');
+  };
+
+  // Check if prices can be updated based on workflow stage
+  const canUpdatePrices = () => {
+    return workflowStage !== 'rental-order';
+  };
+
+  const createNewRentalOrder = () => {
+    const newOrder = {
+      id: generateOrderId(),
+      customer: '',
+      invoiceAddress: '',
+      deliveryAddress: '',
+      rentalTemplate: '',
+      expiration: '',
+      rentalOrderDate: new Date().toISOString().split('T')[0],
+      priceList: '',
+      rentalPeriod: '',
+      rentalDuration: '',
+      orderLines: [
+        {
+          id: generateProductId(),
+          product: 'Product 1',
+          quantity: 1,
+          unitPrice: 0,
+          tax: 0,
+          subTotal: 0
+        }
+      ],
+      termsConditions: '',
+      untaxedTotal: 0,
+      tax: 0,
+      total: 0
+    };
+
+    setRentalOrder(newOrder);
+    setWorkflowStage('quotation');
+    setActiveTab('order-lines');
+    console.log('Created new rental order:', newOrder.id);
+  };
+
   const handleInputChange = (field, value) => {
     setRentalOrder(prev => ({
       ...prev,
@@ -125,14 +218,14 @@ const VendorRentalPage = () => {
 
   const addOrderLine = () => {
     const newOrderLine = {
-      id: rentalOrder.orderLines.length + 1,
-      product: '',
+      id: generateProductId(),
+      product: `Product ${rentalOrder.orderLines.length + 1}`,
       quantity: 1,
       unitPrice: 0,
       tax: 0,
       subTotal: 0
     };
-    
+
     setRentalOrder(prev => ({
       ...prev,
       orderLines: [...prev.orderLines, newOrderLine]
@@ -216,7 +309,10 @@ const VendorRentalPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {/* Create Button */}
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+            <button
+              onClick={createNewRentalOrder}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+            >
               <FiPlus className="w-4 h-4 mr-2" />
               Create
             </button>
@@ -275,8 +371,15 @@ const VendorRentalPage = () => {
         <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
           {/* Order ID */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white mb-4">→{rentalOrder.id}</h2>
+            <OrderIdGenerator
+              currentId={rentalOrder.id}
+              onIdChange={(newId) => setRentalOrder(prev => ({ ...prev, id: newId }))}
+              prefix="R"
+            />
           </div>
+
+          {/* Order Summary */}
+          <RentalOrderSummary rentalOrder={rentalOrder} />
 
           {/* Form Fields Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -350,17 +453,47 @@ const VendorRentalPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">PriceList :</label>
-                <select
-                  value={rentalOrder.priceList}
-                  onChange={(e) => handleInputChange('priceList', e.target.value)}
-                  className="w-full bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">Select Price List</option>
-                  <option value="standard">Standard Pricing</option>
-                  <option value="premium">Premium Pricing</option>
-                  <option value="bulk">Bulk Pricing</option>
-                </select>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-300">PriceList :</label>
+                  {!canUpdatePrices() && (
+                    <span className="text-xs text-orange-400 bg-orange-900/20 px-2 py-1 rounded">
+                      🔒 Pricing Locked
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-3">
+                  <select
+                    value={rentalOrder.priceList}
+                    onChange={(e) => handleInputChange('priceList', e.target.value)}
+                    disabled={!canUpdatePrices()}
+                    className={`flex-1 px-3 py-2 rounded-md border focus:outline-none ${
+                      canUpdatePrices()
+                        ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500 cursor-pointer'
+                        : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-50'
+                    }`}
+                  >
+                    <option value="">Select Price List</option>
+                    <option value="standard">Standard Pricing</option>
+                    <option value="premium">Premium Pricing</option>
+                    <option value="bulk">Bulk Pricing</option>
+                  </select>
+                  <button
+                    onClick={handleUpdatePrices}
+                    disabled={!canUpdatePrices()}
+                    className={`px-4 py-2 rounded-md text-sm transition-colors whitespace-nowrap ${
+                      canUpdatePrices()
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                    }`}
+                    title={
+                      canUpdatePrices()
+                        ? 'Update prices based on selected price list'
+                        : 'Cannot update prices for confirmed rental orders'
+                    }
+                  >
+                    Update Prices
+                  </button>
+                </div>
               </div>
               
               <div>
@@ -383,13 +516,6 @@ const VendorRentalPage = () => {
                   className="w-full bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 focus:border-blue-500 focus:outline-none"
                   placeholder="e.g., 1 week, 2 months"
                 />
-              </div>
-
-              {/* Update Prices Button */}
-              <div className="pt-4">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors">
-                  Update Prices
-                </button>
               </div>
             </div>
           </div>
@@ -438,6 +564,7 @@ const VendorRentalPage = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-700">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Product ID</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Product</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Quantity</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-gray-300">Unit Price</th>
@@ -449,6 +576,9 @@ const VendorRentalPage = () => {
                     <tbody>
                       {rentalOrder.orderLines.map((line, index) => (
                         <tr key={line.id} className="border-b border-gray-700">
+                          <td className="py-3 px-4">
+                            <span className="text-blue-400 font-mono text-sm">{line.id}</span>
+                          </td>
                           <td className="py-3 px-4">
                             <input
                               type="text"
@@ -472,7 +602,12 @@ const VendorRentalPage = () => {
                               type="number"
                               value={line.unitPrice}
                               onChange={(e) => handleOrderLineChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                              className="w-24 bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
+                              disabled={!canUpdatePrices()}
+                              className={`w-24 px-2 py-1 rounded border text-sm ${
+                                canUpdatePrices()
+                                  ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500 focus:outline-none'
+                                  : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed opacity-50'
+                              }`}
                               min="0"
                               step="0.01"
                             />
@@ -493,8 +628,19 @@ const VendorRentalPage = () => {
                           <td className="py-3 px-4">
                             <button
                               onClick={() => removeOrderLine(index)}
-                              className="text-red-400 hover:text-red-300 transition-colors"
-                              disabled={rentalOrder.orderLines.length === 1}
+                              disabled={!canUpdatePrices() || rentalOrder.orderLines.length === 1}
+                              className={`transition-colors ${
+                                canUpdatePrices() && rentalOrder.orderLines.length > 1
+                                  ? 'text-red-400 hover:text-red-300 cursor-pointer'
+                                  : 'text-gray-600 cursor-not-allowed opacity-50'
+                              }`}
+                              title={
+                                !canUpdatePrices()
+                                  ? 'Cannot remove products from confirmed rental orders'
+                                  : rentalOrder.orderLines.length === 1
+                                  ? 'Cannot remove the last product'
+                                  : 'Remove this product from the order'
+                              }
                             >
                               <FiX className="w-4 h-4" />
                             </button>
@@ -509,7 +655,17 @@ const VendorRentalPage = () => {
                 <div className="flex justify-start">
                   <button
                     onClick={addOrderLine}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors flex items-center"
+                    disabled={!canUpdatePrices()}
+                    className={`px-4 py-2 rounded-md text-sm transition-colors flex items-center ${
+                      canUpdatePrices()
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                    }`}
+                    title={
+                      canUpdatePrices()
+                        ? 'Add a new product to the order'
+                        : 'Cannot modify products in confirmed rental orders'
+                    }
                   >
                     <FiPlus className="w-4 h-4 mr-2" />
                     Add Product

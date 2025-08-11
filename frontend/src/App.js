@@ -29,6 +29,8 @@ import CheckoutPage from "./pages/CheckoutPage";
 import VendorDashboardPage from "./pages/VendorDashboardPage";
 import VendorRentalPage from "./pages/vendor/VendorRentalPage";
 import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
+import VendorProductDetailPage from "./pages/vendor/ProductDetailPage";
+import VendorProductsPage from "./pages/vendor/VendorProductsPage";
 
 // Admin Pages (Legacy - to be converted to vendor)
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -42,7 +44,6 @@ import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthGuard from "./components/AuthGuard";
 import LoadingSpinner from "./components/UI/LoadingSpinner";
-import AuthDebug from "./components/AuthDebug";
 
 function App() {
   const { user, loading } = useAuth();
@@ -175,6 +176,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/vendor/products"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorProductsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor/products/:id"
+          element={
+            <ProtectedRoute allowedRoles={["vendor"]}>
+              <VendorProductDetailPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Legacy Admin Routes - Now for Vendors */}
         <Route
@@ -196,9 +213,6 @@ function App() {
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-
-      {/* Auth Debug Component (development only) */}
-      <AuthDebug />
     </div>
   );
 }
