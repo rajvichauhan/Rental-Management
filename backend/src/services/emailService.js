@@ -144,14 +144,14 @@ class EmailService {
             <h3>Order Details</h3>
             <p><strong>Order Number:</strong> {{orderNumber}}</p>
             <p><strong>Rental Period:</strong> {{rentalStart}} to {{rentalEnd}}</p>
-            <p><strong>Total Amount:</strong> ${{ totalAmount }}</p>
+            <p><strong>Total Amount:</strong> \${{totalAmount}}</p>
         </div>
         
         <h3>Items:</h3>
         {{#each items}}
         <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
             <p><strong>{{name}}</strong></p>
-            <p>Quantity: {{quantity}} | Price: ${{ price }}</p>
+            <p>Quantity: {{quantity}} | Price: \${{price}}</p>
         </div>
         {{/each}}
         

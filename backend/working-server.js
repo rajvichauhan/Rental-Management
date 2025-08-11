@@ -247,6 +247,25 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+  try {
+    log.info('User logout request');
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Logout successful'
+    });
+
+  } catch (error) {
+    log.error(`Logout error: ${error.message}`);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+});
+
 // Start server
 const startServer = async () => {
   try {

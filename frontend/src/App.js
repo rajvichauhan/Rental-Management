@@ -48,12 +48,36 @@ function App() {
     );
   }
 
+  // Helper function to get redirect path based on user role
+  const getRedirectPath = (userRole) => {
+    switch (userRole) {
+      case 'admin':
+      case 'staff':
+        return '/admin';
+      case 'customer':
+        return '/dashboard';
+      default:
+        return '/login';
+    }
+  };
+
   return (
     <div className="App">
       <Routes>
+        {/* Default route - redirect based on auth status */}
+        <Route
+          path="/"
+          element={
+            user ? (
+              <Navigate to={getRedirectPath(user.role)} replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
         {/* Public Routes */}
         <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/:id" element={<ProductDetailPage />} />
           <Route path="wishlist" element={<WishlistPage />} />
@@ -62,21 +86,43 @@ function App() {
           {/* Auth Routes - redirect if already logged in */}
           <Route
             path="login"
-            element={user ? <Navigate to="/" replace /> : <LoginPage />}
+            element={
+              user ? (
+                <Navigate to={getRedirectPath(user.role)} replace />
+              ) : (
+                <LoginPage />
+              )
+            }
           />
           <Route
             path="register"
-            element={user ? <Navigate to="/" replace /> : <RegisterPage />}
+            element={
+              user ? (
+                <Navigate to={getRedirectPath(user.role)} replace />
+              ) : (
+                <RegisterPage />
+              )
+            }
           />
           <Route
             path="forgot-password"
             element={
-              user ? <Navigate to="/" replace /> : <ForgotPasswordPage />
+              user ? (
+                <Navigate to={getRedirectPath(user.role)} replace />
+              ) : (
+                <ForgotPasswordPage />
+              )
             }
           />
           <Route
             path="reset-password/:token"
-            element={user ? <Navigate to="/" replace /> : <ResetPasswordPage />}
+            element={
+              user ? (
+                <Navigate to={getRedirectPath(user.role)} replace />
+              ) : (
+                <ResetPasswordPage />
+              )
+            }
           />
           <Route path="verify-email/:token" element={<VerifyEmailPage />} />
         </Route>
@@ -85,7 +131,7 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["customer"]}>
               <Layout />
             </ProtectedRoute>
           }
@@ -97,7 +143,7 @@ function App() {
           <Route
             path="checkout"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["customer"]}>
                 <CheckoutPage />
               </ProtectedRoute>
             }

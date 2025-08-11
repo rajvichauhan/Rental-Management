@@ -255,43 +255,94 @@ const ProductsPage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" : "space-y-4 mb-8"}>
                   {products.map((product) => (
-                    <div
-                      key={product._id}
-                      className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors"
-                    >
-                      {/* Product Image */}
-                      <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600">
-                        <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
-                          <div className="text-xs text-gray-400 text-center">
-                            <div className="mb-1">📊</div>
-                            <div>IMG</div>
+                    viewMode === "grid" ? (
+                      // Grid View
+                      <div
+                        key={product._id || product.id}
+                        className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden hover:border-gray-600 transition-colors"
+                      >
+                        {/* Product Image */}
+                        <div className="aspect-square bg-gray-700 flex items-center justify-center border-b border-gray-600">
+                          <div className="w-16 h-16 bg-gray-600 rounded border-2 border-gray-500 flex items-center justify-center">
+                            <div className="text-xs text-gray-400 text-center">
+                              <div className="mb-1">📊</div>
+                              <div>IMG</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="p-4">
+                          <h3 className="text-white font-medium mb-2">
+                            {product.name}
+                          </h3>
+                          <p className="text-gray-400 text-sm mb-2 line-clamp-2">
+                            {product.description || "No description available"}
+                          </p>
+                          <p className="text-gray-300 text-lg font-semibold mb-3">
+                            ₹{getProductPrice(product).toFixed(2)}/day
+                          </p>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-2">
+                            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                              <FiShoppingCart size={16} />
+                              Add to Cart
+                            </button>
+                            <button className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition-colors">
+                              <FiHeart size={16} />
+                            </button>
                           </div>
                         </div>
                       </div>
+                    ) : (
+                      // List View
+                      <div
+                        key={product._id || product.id}
+                        className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          {/* Product Image */}
+                          <div className="w-20 h-20 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="text-xs text-gray-400 text-center">
+                              <div className="mb-1">📊</div>
+                              <div>IMG</div>
+                            </div>
+                          </div>
 
-                      {/* Product Info */}
-                      <div className="p-4">
-                        <h3 className="text-white font-medium mb-2">
-                          {product.name}
-                        </h3>
-                        <p className="text-gray-300 text-lg font-semibold mb-3">
-                          ₹{getProductPrice(product).toFixed(2)}
-                        </p>
+                          {/* Product Info */}
+                          <div className="flex-1">
+                            <h3 className="text-white font-medium mb-1">
+                              {product.name}
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-2 line-clamp-1">
+                              {product.description || "No description available"}
+                            </p>
+                            <div className="flex items-center gap-4">
+                              <p className="text-gray-300 text-lg font-semibold">
+                                ₹{getProductPrice(product).toFixed(2)}/day
+                              </p>
+                              <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">
+                                SKU: {product.sku || "N/A"}
+                              </span>
+                            </div>
+                          </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-2">
-                          <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                            <FiShoppingCart size={16} />
-                            Add to Cart
-                          </button>
-                          <button className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition-colors">
-                            <FiHeart size={16} />
-                          </button>
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2">
+                              <FiShoppingCart size={16} />
+                              Add to Cart
+                            </button>
+                            <button className="p-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition-colors">
+                              <FiHeart size={16} />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )
                   ))}
                 </div>
               )}
