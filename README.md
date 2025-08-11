@@ -15,7 +15,7 @@ A comprehensive rental management application built with the MERN stack (MongoDB
 
 ### User Roles
 - **Customer**: Browse products, create bookings, make payments, track orders
-- **Admin/Staff**: Manage products, process orders, handle returns, view analytics
+- **Vendor**: Manage products, process orders, handle returns, view analytics, access vendor dashboard
 
 ## 🛠 Technology Stack
 

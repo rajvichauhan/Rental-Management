@@ -123,67 +123,97 @@ const createOrder = catchAsync(async (req, res) => {
   });
 });
 
-// Update order - MOCK VERSION
+// Update order
 const updateOrder = catchAsync(async (req, res) => {
   const { id } = req.params;
+  const { user } = req;
+  const updateData = req.body;
 
-  const mockOrder = {
-    id: id,
-    orderNumber: 'ORD-' + Date.now(),
-    status: 'updated',
-    totalAmount: 150,
-    updatedAt: new Date().toISOString()
-  };
+  // Build filter
+  const filter = { _id: id };
+
+  // If customer, ensure they can only access their own orders
+  if (user.role === 'customer') {
+    filter.customerId = user._id;
+  }
+
+  // Find and update order
+  const order = await Order.findOneAndUpdate(
+    filter,
+    updateData,
+    { new: true, runValidators: true }
+  ).populate('customerId', 'name email phone')
+   .populate('items.productId', 'name sku images');
+
+  if (!order) {
+    throw new AppError('Order not found or access denied', 404);
+  }
 
   res.status(200).json({
     status: 'success',
-    data: mockOrder
+    data: order
   });
 });
 
-// Update order status (admin/staff only) - MOCK VERSION
+// Update order status (admin/staff only)
 const updateOrderStatus = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const mockOrder = {
-    id: id,
-    orderNumber: 'ORD-' + Date.now(),
-    status: status || 'updated',
-    totalAmount: 150,
-    updatedAt: new Date().toISOString()
-  };
+  const order = await Order.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true, runValidators: true }
+  ).populate('customerId', 'name email phone')
+   .populate('items.productId', 'name sku images');
 
-  logger.info(`Mock order status updated: ${id} to ${status}`);
+  if (!order) {
+    throw new AppError('Order not found', 404);
+  }
+
+  logger.info(`Order status updated: ${id} to ${status}`);
 
   res.status(200).json({
     status: 'success',
-    data: mockOrder
+    data: order
   });
 });
 
-// Get user's orders - MOCK VERSION
+// Get user's orders
 const getMyOrders = catchAsync(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, status } = req.query;
+  const { user } = req;
 
-  const mockOrders = [
-    {
-      id: 'my_order_1',
-      orderNumber: 'ORD-001',
-      status: 'pending',
-      totalAmount: 100,
-      createdAt: new Date().toISOString()
-    }
-  ];
+  // Build filter
+  const filter = { customerId: user._id };
+
+  if (status) {
+    filter.status = status;
+  }
+
+  // Calculate pagination
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+
+  // Execute query
+  const orders = await Order.find(filter)
+    .populate('customerId', 'name email phone')
+    .populate('items.productId', 'name sku images')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit))
+    .lean();
+
+  // Get total count
+  const total = await Order.countDocuments(filter);
 
   res.status(200).json({
     status: 'success',
     data: {
-      orders: mockOrders,
+      orders,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: mockOrders.length
+        total
       }
     }
   });

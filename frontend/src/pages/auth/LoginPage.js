@@ -12,7 +12,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || "/";
+  const from = location.state?.from?.pathname;
 
   const {
     register,
@@ -20,10 +20,25 @@ const LoginPage = () => {
     formState: { errors, isSubmitting },
   } = useForm();
 
+  // Helper function to get redirect path based on user role
+  const getRedirectPath = (userRole) => {
+    switch (userRole) {
+      case 'vendor':
+        return '/vendor-dashboard';
+      case 'customer':
+        return '/dashboard';
+      default:
+        return '/dashboard';
+    }
+  };
+
   const onSubmit = async (data) => {
     const result = await login(data.email, data.password);
     if (result.success) {
-      navigate(from, { replace: true });
+      // If there's a specific page they were trying to access, go there
+      // Otherwise, redirect to role-appropriate dashboard
+      const redirectPath = from || getRedirectPath(result.role);
+      navigate(redirectPath, { replace: true });
     }
   };
 
