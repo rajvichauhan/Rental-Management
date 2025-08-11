@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
-import { useWishlist } from "../../contexts/WishlistContext";
 import {
   FiShoppingCart,
   FiUser,
@@ -12,14 +11,12 @@ import {
   FiSettings,
   FiPackage,
   FiSearch,
-  FiHeart,
-  FiHome
+  FiUsers,
 } from "react-icons/fi";
 
 const Header = () => {
-  const { user, logout, isVendor } = useAuth();
+  const { user, logout, isAdminOrStaff } = useAuth();
   const { cartItems } = useCart();
-  const { getWishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,8 +37,6 @@ const Header = () => {
     0
   );
 
-  const wishlistItemCount = getWishlistCount();
-
   return (
     <>
       {/* Main Header - Always visible */}
@@ -61,42 +56,22 @@ const Header = () => {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <Link
-                to="/home"
-                className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                  location.pathname === "/home" || location.pathname === "/"
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-blue-400 hover:bg-gray-700"
-                }`}
-              >
-                <FiHome className="w-4 h-4" />
-                <span>Home</span>
-              </Link>
-              <Link
                 to="/products"
-                className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                  location.pathname === "/products" || location.pathname.startsWith("/products")
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-blue-400 hover:bg-gray-700"
-                }`}
+                className="text-gray-300 hover:text-blue-400 transition-colors"
               >
-                <FiPackage className="w-4 h-4" />
-                <span>Rental Shop</span>
+                Products
               </Link>
               <Link
-                to="/wishlist"
-                className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors relative ${
-                  location.pathname === "/wishlist"
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:text-blue-400 hover:bg-gray-700"
-                }`}
+                to="/about"
+                className="text-gray-300 hover:text-blue-400 transition-colors"
               >
-                <FiHeart className="w-4 h-4" />
-                <span>Wishlist</span>
-                {wishlistItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {wishlistItemCount}
-                  </span>
-                )}
+                About
+              </Link>
+              <Link
+                to="/contact"
+                className="text-gray-300 hover:text-blue-400 transition-colors"
+              >
+                Contact
               </Link>
             </nav>
 
@@ -144,14 +119,14 @@ const Header = () => {
                         Dashboard
                       </Link>
 
-                      {isVendor() && (
+                      {isAdminOrStaff() && (
                         <Link
-                          to="/vendor-dashboard"
+                          to="/admin"
                           className="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <FiSettings className="w-4 h-4 mr-2" />
-                          Vendor Dashboard
+                          Admin Panel
                         </Link>
                       )}
 
@@ -203,45 +178,25 @@ const Header = () => {
             <div className="md:hidden py-4 border-t border-gray-700">
               <nav className="flex flex-col space-y-2">
                 <Link
-                  to="/home"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    location.pathname === "/home" || location.pathname === "/"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-blue-400 hover:bg-gray-700"
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <FiHome className="w-4 h-4" />
-                  <span>Home</span>
-                </Link>
-                <Link
                   to="/products"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    location.pathname === "/products" || location.pathname.startsWith("/products")
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-blue-400 hover:bg-gray-700"
-                  }`}
+                  className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FiPackage className="w-4 h-4" />
-                  <span>Rental Shop</span>
+                  Products
                 </Link>
                 <Link
-                  to="/wishlist"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors relative ${
-                    location.pathname === "/wishlist"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-blue-400 hover:bg-gray-700"
-                  }`}
+                  to="/about"
+                  className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FiHeart className="w-4 h-4" />
-                  <span>Wishlist</span>
-                  {wishlistItemCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center ml-auto">
-                      {wishlistItemCount}
-                    </span>
-                  )}
+                  About
+                </Link>
+                <Link
+                  to="/contact"
+                  className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Contact
                 </Link>
 
                 <hr className="my-2 border-gray-700" />
@@ -257,14 +212,14 @@ const Header = () => {
                       Dashboard
                     </Link>
 
-                    {isVendor() && (
+                    {isAdminOrStaff() && (
                       <Link
-                        to="/vendor-dashboard"
+                        to="/admin"
                         className="px-4 py-2 text-gray-300 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors flex items-center"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <FiSettings className="w-4 h-4 mr-2" />
-                        Vendor Dashboard
+                        Admin Panel
                       </Link>
                     )}
 
@@ -311,10 +266,8 @@ const Header = () => {
         )}
       </header>
 
-
-
-      {/* Dashboard Navigation - Only show on dashboard pages for vendors */}
-      {isDashboardPage && user && isVendor() && (
+      {/* Dashboard Navigation - Only show on dashboard pages */}
+      {isDashboardPage && user && (
         <div className="bg-gray-900 border-b border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
