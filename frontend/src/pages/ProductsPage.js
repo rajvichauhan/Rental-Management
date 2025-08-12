@@ -59,7 +59,7 @@ const ProductsPage = () => {
         setLoading(true);
         const params = {
           page: currentPage,
-          limit: 12,
+          limit: 6,
           sortBy,
           sortOrder,
         };
@@ -129,30 +129,7 @@ const ProductsPage = () => {
       }
       return product.images[0];
     }
-
-    // Fallback images based on product name or category
-    const productName = product.name?.toLowerCase() || "";
-    const categoryName = product.category?.name?.toLowerCase() || "";
-
-    // Map specific products to available images with hover variants
-    if (productName.includes("chair") || categoryName.includes("chair")) {
-      return isHover ? "/chair2.jpg" : "/chair1.jpg";
-    }
-
-    // Default fallback images for different categories with hover variants
-    const categoryImageMap = {
-      furniture: isHover ? "/chair1.jpg" : "/chair2.jpg",
-      electronics: isHover ? "/chair2.jpg" : "/chair1.jpg",
-      appliances: isHover ? "/chair1.jpg" : "/chair2.jpg",
-      tools: isHover ? "/chair2.jpg" : "/chair1.jpg",
-      sports: isHover ? "/chair1.jpg" : "/chair2.jpg",
-      automotive: isHover ? "/chair2.jpg" : "/chair1.jpg",
-    };
-
-    return (
-      categoryImageMap[categoryName] ||
-      (isHover ? "/chair2.jpg" : "/chair1.jpg")
-    );
+    return isHover ? "/chair2.jpg" : "/chair1.jpg";
   };
 
   // Helper function to handle image loading errors
@@ -402,7 +379,7 @@ const ProductsPage = () => {
                 <div
                   className={
                     viewMode === "grid"
-                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
                       : "space-y-4 mb-8"
                   }
                 >

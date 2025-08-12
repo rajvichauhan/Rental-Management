@@ -13,6 +13,8 @@ import {
   FiCheck,
   FiCopy,
   FiMail,
+  FiImage,
+  FiChevronLeft,
 } from "react-icons/fi";
 import {
   FaFacebookF,
@@ -46,6 +48,8 @@ const ProductDetailPage = () => {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addToCartSuccess, setAddToCartSuccess] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
 
   // Random product descriptions
   const getRandomDescription = () => {
@@ -101,6 +105,51 @@ const ProductDetailPage = () => {
   // Helper function to get available inventory count
   const getAvailableInventoryCount = (product) => {
     return product?.inventory?.filter((item) => item.isAvailable)?.length || 0;
+  };
+
+  // Helper function to get product images
+  const getProductImages = (product) => {
+    // Helper function to ensure proper image path
+    const formatImagePath = (imagePath) => {
+      if (!imagePath) return null;
+      // If path already starts with /, return as is
+      if (imagePath.startsWith("/")) return imagePath;
+      // Otherwise, add leading slash
+      return `/${imagePath}`;
+    };
+
+    // Check if product has images array and extract from database
+    if (
+      product?.images &&
+      Array.isArray(product.images) &&
+      product.images.length > 0
+    ) {
+      const formattedImages = product.images
+        .map(formatImagePath)
+        .filter(Boolean); // Remove any null/undefined values
+      if (formattedImages.length > 0) {
+        return formattedImages;
+      }
+    }
+
+    return ["/chair1.jpg", "/chair2.jpg"];
+  };
+
+  // Handle image navigation
+  const handleImageNavigation = (direction) => {
+    const images = getProductImages(product);
+    if (direction === "next") {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    } else {
+      setCurrentImageIndex(
+        (prev) => (prev - 1 + images.length) % images.length
+      );
+    }
+  };
+
+  // Handle image error
+  const handleImageError = () => {
+    setImageError(true);
   };
 
   // Calculate rental duration in days
@@ -205,7 +254,7 @@ const ProductDetailPage = () => {
           id: product._id || product.id,
           name: product.name,
           price: getProductPrice(product),
-          image: product.images?.[0] || null,
+          image: getProductImages(product)[0] || null,
         },
         quantity,
         {
@@ -243,7 +292,7 @@ const ProductDetailPage = () => {
       productId: product._id || product.id,
       name: product.name,
       price: getProductPrice(product),
-      image: product.images?.[0] || null,
+      image: getProductImages(product)[0] || null,
     });
   };
 
@@ -331,21 +380,81 @@ const ProductDetailPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Left Column - Product Image and Details */}
             <div className="space-y-6">
-              {/* Product Image */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 flex items-center justify-center">
-                <div className="w-64 h-64 bg-gray-700 rounded-lg border-2 border-gray-600 flex items-center justify-center relative">
-                  {/* Placeholder image with product icon */}
-                  <div className="text-center">
-                    <div className="w-20 h-24 bg-gray-600 rounded border border-gray-500 mx-auto mb-2 flex items-center justify-center relative">
-                      {/* Bookmark/ribbon icon in corner */}
-                      <div className="absolute -top-1 -right-1 w-6 h-8 bg-gray-500 rounded-sm flex items-center justify-center">
-                        <div className="w-3 h-4 bg-gray-400 rounded-sm"></div>
+              {/* Product Image Gallery */}
+              <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+                {/* Main Image Display */}
+                <div className="relative aspect-square bg-gray-700 flex items-center justify-center group">
+                  {!imageError && getProductImages(product).length > 0 ? (
+                    <>
+                      <img
+                        src={getProductImages(product)[currentImageIndex]}
+                        alt={`${product.name} - View ${currentImageIndex + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        onError={handleImageError}
+                      />
+
+                      {/* Navigation Arrows - Show only if multiple images */}
+                      {getProductImages(product).length > 1 && (
+                        <>
+                          <button
+                            onClick={() => handleImageNavigation("prev")}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <FiChevronLeft size={20} />
+                          </button>
+                          <button
+                            onClick={() => handleImageNavigation("next")}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <FiChevronRight size={20} />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Image Counter */}
+                      {getProductImages(product).length > 1 && (
+                        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                          {currentImageIndex + 1} /{" "}
+                          {getProductImages(product).length}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    /* Fallback placeholder */
+                    <div className="text-center text-gray-400">
+                      <FiImage size={48} className="mx-auto mb-4" />
+                      <div className="text-lg font-medium">
+                        No Image Available
                       </div>
-                      <div className="text-2xl text-gray-400">📦</div>
+                      <div className="text-sm">{product.name}</div>
                     </div>
-                    <div className="text-xs text-gray-400">Product Image</div>
-                  </div>
+                  )}
                 </div>
+
+                {/* Thumbnail Navigation - Show only if multiple images */}
+                {getProductImages(product).length > 1 && !imageError && (
+                  <div className="p-4 bg-gray-750">
+                    <div className="flex gap-2 overflow-x-auto">
+                      {getProductImages(product).map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                            currentImageIndex === index
+                              ? "border-blue-500 ring-2 ring-blue-500/30"
+                              : "border-gray-600 hover:border-gray-500"
+                          }`}
+                        >
+                          <img
+                            src={image}
+                            alt={`${product.name} preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Add to Wishlist Button */}
